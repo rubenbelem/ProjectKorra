@@ -1,15 +1,16 @@
 package com.projectkorra.projectkorra.earthbending;
 
-import com.projectkorra.projectkorra.GeneralMethods;
-import com.projectkorra.projectkorra.ProjectKorra;
-import com.projectkorra.projectkorra.ability.AvatarState;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentHashMap;
+import com.projectkorra.projectkorra.BendingPlayer;
+import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.ability.AvatarState;
 
 public class Shockwave {
 
@@ -19,12 +20,16 @@ public class Shockwave {
 	private static final long defaultchargetime = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.Shockwave.ChargeTime");
 	private static final double threshold = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Shockwave.FallThreshold");
 
+	private static long cooldown = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.Shockwave.Cooldown");
 	private Player player;
 	private long starttime;
 	private long chargetime = defaultchargetime;
 	private boolean charged = false;
 
 	public Shockwave(Player player) {
+		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
+		if (bPlayer.isOnCooldown("Shockwave"))
+			return;
 		if (instances.containsKey(player))
 			return;
 		starttime = System.currentTimeMillis();
@@ -91,6 +96,7 @@ public class Shockwave {
 			Vector vector = new Vector(Math.cos(rtheta), 0, Math.sin(rtheta));
 			new Ripple(player, vector.normalize());
 		}
+		GeneralMethods.getBendingPlayer(player.getName()).addCooldown("Shockwave", cooldown);
 	}
 
 	public static void coneShockwave(Player player) {
@@ -103,6 +109,7 @@ public class Shockwave {
 					if (vector.angle(player.getEyeLocation().getDirection()) < angle)
 						new Ripple(player, vector.normalize());
 				}
+				GeneralMethods.getBendingPlayer(player.getName()).addCooldown("Shockwave", cooldown);
 				instances.remove(player);
 			}
 		}

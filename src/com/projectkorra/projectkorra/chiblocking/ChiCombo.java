@@ -38,14 +38,14 @@ public class ChiCombo {
 		if (!enabled)
 			return;
 		if (ability.equalsIgnoreCase("Immobilize")) {
-			if (!GeneralMethods.canBend(player.getName(), "Immobilize") || GeneralMethods.getBendingPlayer(player).isOnCooldown("Immobilize"))
+			if (!GeneralMethods.canBend(player.getName(), "Immobilize") || GeneralMethods.getBendingPlayer(player.getName()).isOnCooldown("Immobilize"))
 				return;
 			else {
 				//this.player = player;
 				target = GeneralMethods.getTargetedEntity(player, 5, new ArrayList<Entity>());
 				paralyze(target, IMMOBILIZE_DURATION);
 				instances.add(this);
-				GeneralMethods.getBendingPlayer(player).addCooldown("Immobilize", IMMOBILIZE_COOLDOWN);
+				GeneralMethods.getBendingPlayer(player.getName()).addCooldown("Immobilize", IMMOBILIZE_COOLDOWN);
 			}
 		}
 	}
@@ -90,9 +90,17 @@ public class ChiCombo {
 		for (Entity e : paralyzedEntities.keySet()) {
 			if (paralyzedEntities.get(e) <= System.currentTimeMillis()) {
 				paralyzedEntities.remove(e);
+				List<Integer> remove = new ArrayList<Integer>();
 				for (ChiCombo c : instances) {
+					if (e == null || c.target == null) {
+						remove.add(instances.indexOf(c));
+						continue;
+					}
 					if (c.target.equals(e))
-						instances.remove(c);
+						remove.add(instances.indexOf(c));
+				}
+				for (int i : remove) {
+					instances.remove(i);
 				}
 			}
 		}

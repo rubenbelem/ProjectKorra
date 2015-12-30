@@ -2,12 +2,15 @@ package com.projectkorra.projectkorra.airbending;
 
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ability.AvatarState;
-import com.projectkorra.projectkorra.ability.StockAbility;
-import com.projectkorra.projectkorra.ability.api.CoreAbility;
 import com.projectkorra.projectkorra.command.Commands;
+import com.projectkorra.projectkorra.configuration.ConfigLoadable;
+import com.projectkorra.projectkorra.earthbending.EarthBlast;
+import com.projectkorra.projectkorra.earthbending.SandSpout;
 import com.projectkorra.projectkorra.firebending.Combustion;
 import com.projectkorra.projectkorra.firebending.FireBlast;
 import com.projectkorra.projectkorra.firebending.FireStream;
+import com.projectkorra.projectkorra.waterbending.WaterManipulation;
+import com.projectkorra.projectkorra.waterbending.WaterSpout;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -19,8 +22,11 @@ import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class AirShield extends CoreAbility {
+public class AirShield implements ConfigLoadable {
+
+	public static ConcurrentHashMap<Player, AirShield> instances = new ConcurrentHashMap<>();
 
 	private static double MAX_RADIUS = config.get().getDouble("Abilities.Air.AirShield.Radius");
 	private static boolean isToggle = config.get().getBoolean("Abilities.Air.AirShield.IsAvatarStateToggle");
@@ -35,13 +41,13 @@ public class AirShield extends CoreAbility {
 
 	public AirShield(Player player) {
 		/* Initial Check */
-		if (AvatarState.isAvatarState(player) && containsPlayer(player, AirShield.class) && isToggle) {
-			//instances.remove(player.getUniqueId());
-			getAbilityFromPlayer(player, AirShield.class).remove();
+		if (AvatarState.isAvatarState(player) && instances.containsKey(player) && isToggle) {
+			// instances.remove(player.getUniqueId());
+			instances.get(player).remove();
 			return;
 		}
 		/* End Initial Check */
-		//reloadVariables();
+		// reloadVariables();
 		this.player = player;
 		int angle = 0;
 		int di = (int) (maxradius * 2 / numberOfStreams);
@@ -52,17 +58,19 @@ public class AirShield extends CoreAbility {
 				angle = 0;
 		}
 
-		//instances.put(player.getUniqueId(), this);
-		putInstance(player, this);
+		instances.put(player, this);
 	}
 
 	public static String getDescription() {
-		return "Air Shield is one of the most powerful defensive techniques in existence. " + "To use, simply sneak (default: shift). " + "This will create a whirlwind of air around the user, " + "with a small pocket of safe space in the center. " + "This wind will deflect all projectiles and will prevent any creature from " + "entering it for as long as its maintained. ";
+		return "Air Shield is one of the most powerful defensive techniques in existence. "
+				+ "To use, simply sneak (default: shift). " + "This will create a whirlwind of air around the user, "
+				+ "with a small pocket of safe space in the center. "
+				+ "This wind will deflect all projectiles and will prevent any creature from "
+				+ "entering it for as long as its maintained. ";
 	}
 
 	public static boolean isWithinShield(Location loc) {
-		for (Integer id : getInstances(StockAbility.AirShield).keySet()) {
-			AirShield ashield = (AirShield) getAbility(id);
+		for (AirShield ashield : instances.values()) {
 			if (ashield.player.getLocation().getWorld() != loc.getWorld())
 				return false;
 			if (ashield.player.getLocation().distance(loc) <= ashield.radius)
@@ -79,12 +87,6 @@ public class AirShield extends CoreAbility {
 		return player;
 	}
 
-	@Override
-	public StockAbility getStockAbility() {
-		return StockAbility.AirShield;
-	}
-
-	@Override
 	public boolean progress() {
 		if (player.isDead() || !player.isOnline()) {
 			remove();
@@ -106,7 +108,8 @@ public class AirShield extends CoreAbility {
 		}
 
 		if (isToggle) {
-			if (((!GeneralMethods.getBoundAbility(player).equalsIgnoreCase("AirShield")) || (!player.isSneaking())) && !AvatarState.isAvatarState(player)) {
+			if (((!GeneralMethods.getBoundAbility(player).equalsIgnoreCase("AirShield")) || (!player.isSneaking()))
+					&& !AvatarState.isAvatarState(player)) {
 				remove();
 				return false;
 			}
@@ -118,13 +121,29 @@ public class AirShield extends CoreAbility {
 		}
 
 		//
-		//		if (((!Methods.getBoundAbility(player).equalsIgnoreCase("AirShield")) || (!player
-		//				.isSneaking()))) {
-		//			remove();
-		//			return false;
-		//		}
+		// if (((!Methods.getBoundAbility(player).equalsIgnoreCase("AirShield")) || (!player
+		// .isSneaking()))) {
+		// remove();
+		// return false;
+		// }
 		rotateShield();
 		return true;
+	}
+
+	public static void progressAll() {
+		for (AirShield ability : instances.values()) {
+			ability.progress();
+		}
+	}
+
+	public void remove() {
+		instances.remove(player);
+	}
+
+	public static void removeAll() {
+		for (AirShield ability : instances.values()) {
+			ability.remove();
+		}
 	}
 
 	@Override
@@ -144,6 +163,10 @@ public class AirShield extends CoreAbility {
 		FireStream.removeAroundPoint(origin, radius);
 		AirBlast.removeAirBlastsAroundPoint(origin, radius);
 		AirSuction.removeAirSuctionsAroundPoint(origin, radius);
+		EarthBlast.removeAroundPoint(origin, radius);
+		SandSpout.removeSpouts(origin, radius, player);
+		WaterSpout.removeSpouts(origin, radius, player);
+		WaterManipulation.removeAroundPoint(origin, radius);
 
 		for (Entity entity : GeneralMethods.getEntitiesAroundPoint(origin, radius)) {
 			if (GeneralMethods.isRegionProtectedFromBuild(player, "AirShield", entity.getLocation()))
@@ -181,7 +204,7 @@ public class AirShield extends CoreAbility {
 				entity.setFallDistance(0);
 			}
 		}
-		
+
 		for (Block testblock : GeneralMethods.getBlocksAroundPoint(player.getLocation(), radius)) {
 			if (testblock.getType() == Material.FIRE) {
 				testblock.setType(Material.AIR);
@@ -199,7 +222,7 @@ public class AirShield extends CoreAbility {
 
 			y = origin.getY() + factor * (double) i;
 
-			//double theta = Math.asin(y/radius);
+			// double theta = Math.asin(y/radius);
 			double f = Math.sqrt(1 - factor * factor * ((double) i / radius) * ((double) i / radius));
 
 			x = origin.getX() + radius * Math.cos(angle) * f;
@@ -213,8 +236,8 @@ public class AirShield extends CoreAbility {
 				}
 			}
 
-			//				origin.getWorld().playEffect(effect, Effect.SMOKE, 4,
-			//						(int) AirBlast.defaultrange);
+			// origin.getWorld().playEffect(effect, Effect.SMOKE, 4,
+			// (int) AirBlast.defaultrange);
 
 			angles.put(i, angles.get(i) + (int) (10 * speedfactor));
 		}

@@ -20,10 +20,12 @@ public class CompactColumn {
 
 	private static int ID = Integer.MIN_VALUE;
 	private static int height = EarthColumn.standardheight;
-	private static double range = Collapse.range;
 	private static double speed = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Collapse.Speed");
 	private static final Vector direction = new Vector(0, -1, 0);
 	private static long interval = (long) (1000. / speed);
+	
+	private static int selectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.Collapse.SelectRange");
+	private static boolean dynamic = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.Collapse.DynamicSourcing.Enabled");
 
 	private Location origin;
 	private Location location;
@@ -39,7 +41,7 @@ public class CompactColumn {
 		if (bPlayer.isOnCooldown("Collapse"))
 			return;
 
-		block = BlockSource.getEarthSourceBlock(player, range, ClickType.LEFT_CLICK);
+		block = BlockSource.getEarthSourceBlock(player, selectRange, selectRange, ClickType.LEFT_CLICK, false, dynamic, true, EarthMethods.canSandbend(player), EarthMethods.canMetalbend(player));
 		if (block == null)
 			return;
 		origin = block.getLocation();
@@ -77,9 +79,6 @@ public class CompactColumn {
 
 		if (distance != 0) {
 			if (canInstantiate()) {
-				for (Block blocki : affectedblocks.keySet()) {
-					EarthColumn.resetBlock(blocki);
-				}
 				id = ID;
 				instances.put(id, this);
 				if (ID >= Integer.MAX_VALUE) {
@@ -144,9 +143,6 @@ public class CompactColumn {
 		if (System.currentTimeMillis() - time >= interval) {
 			time = System.currentTimeMillis();
 			if (!moveEarth()) {
-				for (Block blocki : affectedblocks.keySet()) {
-					EarthColumn.resetBlock(blocki);
-				}
 				instances.remove(id);
 				// for (Block block : affectedblocks.keySet()) {
 				// alreadydoneblocks.put(block, block);

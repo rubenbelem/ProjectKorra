@@ -1,10 +1,7 @@
 package com.projectkorra.projectkorra.earthbending;
 
-import com.projectkorra.projectkorra.BendingPlayer;
-import com.projectkorra.projectkorra.GeneralMethods;
-import com.projectkorra.projectkorra.ProjectKorra;
-import com.projectkorra.projectkorra.ability.StockAbility;
-import com.projectkorra.projectkorra.ability.api.CoreAbility;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -12,17 +9,26 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
+import com.projectkorra.projectkorra.BendingPlayer;
+import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.configuration.ConfigLoadable;
 
-public class Catapult extends CoreAbility {
+public class Catapult implements ConfigLoadable {
+
+	public static ConcurrentHashMap<Player, Catapult> instances = new ConcurrentHashMap<>();
 
 	private static int LENGTH = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.Catapult.Length");
 	private static double SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Catapult.Speed");
 	private static double PUSH = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Catapult.Push");
-
+	private static double SHIFT = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Catapult.ShiftModifier");
+	private static long COOLDOWN = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.Catapult.Cooldown");
+	
 	private int length = LENGTH;
 	private double speed = SPEED;
 	private double push = PUSH;
+	private double shift = SHIFT;
+	private long cooldown = COOLDOWN;
 	private Player player;
 	private Location origin;
 	private Location location;
@@ -38,7 +44,7 @@ public class Catapult extends CoreAbility {
 		if (bplayer.isOnCooldown("Catapult"))
 			return;
 		/* End Initial Checks */
-		//reloadVariables();
+		// reloadVariables();
 		this.player = player;
 		origin = player.getEyeLocation().clone();
 		direction = origin.getDirection().clone().normalize();
@@ -63,19 +69,18 @@ public class Catapult extends CoreAbility {
 				catapult = true;
 			}
 			if (player.isSneaking())
-				distance = distance / 2;
+				distance = (int) (distance / shift);
 
 			moving = true;
-			putInstance(player, this);
-			GeneralMethods.invincible.add(this);
-			bplayer.addCooldown("Catapult", GeneralMethods.getGlobalCooldown());
+			instances.put(player, this);
+			bplayer.addCooldown("Catapult", cooldown);
 		}
 
 	}
 
 	public Catapult(Player player, Catapult source) {
 		this.player = player;
-		reloadVariables();
+		// reloadVariables();
 		flying = true;
 		moving = false;
 
@@ -83,7 +88,7 @@ public class Catapult extends CoreAbility {
 		direction = source.direction.clone();
 		distance = source.distance;
 
-		putInstance(player, this);
+		instances.put(player, this);
 		EarthMethods.playEarthbendingSound(player.getLocation());
 		fly();
 	}
@@ -99,8 +104,8 @@ public class Catapult extends CoreAbility {
 
 	public static ArrayList<Player> getPlayers() {
 		ArrayList<Player> players = new ArrayList<Player>();
-		for (Integer id : getInstances(Catapult.class).keySet()) {
-			players.add(getAbility(id).getPlayer());
+		for (Catapult cata : instances.values()) {
+			players.add(cata.getPlayer());
 		}
 		return players;
 	}
@@ -149,11 +154,6 @@ public class Catapult extends CoreAbility {
 		return speed;
 	}
 
-	@Override
-	public StockAbility getStockAbility() {
-		return StockAbility.Catapult;
-	}
-
 	private boolean moveEarth() {
 		location = location.clone().add(direction);
 		if (catapult) {
@@ -179,7 +179,6 @@ public class Catapult extends CoreAbility {
 		return true;
 	}
 
-	@Override
 	public boolean progress() {
 		if (player.isDead() || !player.isOnline()) {
 			remove();
@@ -199,11 +198,27 @@ public class Catapult extends CoreAbility {
 		return true;
 	}
 
+	public static void progressAll() {
+		for (Catapult ability : instances.values()) {
+			ability.progress();
+		}
+	}
+
+	public static void removeAll() {
+		for (Catapult ability : instances.values()) {
+			ability.remove();
+		}
+	}
+
 	@Override
 	public void reloadVariables() {
 		LENGTH = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.Catapult.Length");
 		SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Catapult.Speed");
 		PUSH = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.Catapult.Push");
+	}
+
+	public void remove() {
+		instances.remove(player);
 	}
 
 	public void setLength(int length) {
@@ -213,9 +228,9 @@ public class Catapult extends CoreAbility {
 	public void setPush(double push) {
 		this.push = push;
 	}
-	
+
 	public void setSpeed(double speed) {
 		this.speed = speed;
 	}
-	
+
 }

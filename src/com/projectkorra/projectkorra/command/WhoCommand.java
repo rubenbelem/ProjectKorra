@@ -34,7 +34,7 @@ public class WhoCommand extends PKCommand {
 	Map<String, String> staff = new HashMap<String, String>();
 
 	public WhoCommand() {
-		super("who", "/bending who <Player>", "This command will tell you what element all players that are online are (If you don't specify a player) or give you information about the player that you specify.", new String[] { "who", "w" });
+		super("who", "/bending who [Player]", "This command will tell you what element all players that are online are (If you don't specify a player) or give you information about the player that you specify.", new String[] { "who", "w" });
 
 		staff.put("8621211e-283b-46f5-87bc-95a66d68880e", ChatColor.RED + "ProjectKorra Founder"); // MistPhizzle
 
@@ -42,7 +42,9 @@ public class WhoCommand extends PKCommand {
 
 		staff.put("929b14fc-aaf1-4f0f-84c2-f20c55493f53", ChatColor.GREEN + "ProjectKorra Head Concept Designer"); // Vidcom
 
-		staff.put("15d1a5a7-76ef-49c3-b193-039b27c47e30", ChatColor.GREEN + "ProjectKorra Digital Director"); // Kiam
+		staff.put("15d1a5a7-76ef-49c3-b193-039b27c47e30", ChatColor.BLUE + "ProjectKorra Digital Director"); // Kiam
+		
+		staff.put("1553482a-5e86-4270-9262-b57c11151074", ChatColor.GOLD + "ProjectKorra Head Community Moderator"); // Pickle9775
 
 		staff.put("96f40c81-dd5d-46b6-9afe-365114d4a082", ChatColor.DARK_PURPLE + "ProjectKorra Developer"); // Coolade
 		staff.put("833a7132-a9ec-4f0a-ad9c-c3d6b8a1c7eb", ChatColor.DARK_PURPLE + "ProjectKorra Developer"); // Jacklin213
@@ -53,16 +55,15 @@ public class WhoCommand extends PKCommand {
 		staff.put("dedf335b-d282-47ab-8ffc-a80121661cd1", ChatColor.DARK_PURPLE + "ProjectKorra Developer"); // grasshopperMatt
 
 		staff.put("623df34e-9cd4-438d-b07c-1905e1fc46b6", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Loony
-		staff.put("80f9072f-e37e-4adc-8675-1ba6af87d63b", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Cross
-		staff.put("57205eec-96bd-4aa3-b73f-c6627429beb2", ChatColor.GREEN + "ProjectKorra Concept Designer"); // ashe36
-		staff.put("7daead36-d285-4640-848a-2f105334b792", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Fuzzy
-		staff.put("f30c871e-cd60-446b-b219-e31e00e16857", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Gangksta
-		staff.put("38217173-8a32-4ba7-9fe1-dd4fed031a74", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Fly
+		//staff.put("80f9072f-e37e-4adc-8675-1ba6af87d63b", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Cross
+		//staff.put("57205eec-96bd-4aa3-b73f-c6627429beb2", ChatColor.GREEN + "ProjectKorra Concept Designer"); // ashe36
+		//staff.put("7daead36-d285-4640-848a-2f105334b792", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Fuzzy
+		//staff.put("f30c871e-cd60-446b-b219-e31e00e16857", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Gangksta
+		staff.put("38217173-8a32-4ba7-9fe1-dd4fed031a74", ChatColor.GREEN + "ProjectKorra Concept Designer"); // Easte
 
-		staff.put("1553482a-5e86-4270-9262-b57c11151074", ChatColor.GOLD + "ProjectKorra Community Moderator"); // Pickle9775
 		staff.put("3d5bc713-ab8b-4125-b5ba-a1c1c2400b2c", ChatColor.GOLD + "ProjectKorra Community Moderator"); // Gold
 
-		staff.put("2ab334d1-9691-4994-a624-209c7b4f220b", ChatColor.BLUE + "ProjectKorra Digital Team"); // Austygen
+		//staff.put("2ab334d1-9691-4994-a624-209c7b4f220b", ChatColor.BLUE + "ProjectKorra Digital Team"); // Austygen
 	}
 
 	@Override
@@ -75,34 +76,51 @@ public class WhoCommand extends PKCommand {
 			List<String> players = new ArrayList<String>();
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				String playerName = player.getName();
-
+				String result = ChatColor.WHITE + playerName;
 				BendingPlayer bp = GeneralMethods.getBendingPlayer(playerName);
 				if (bp == null) {
 					GeneralMethods.createBendingPlayer(player.getUniqueId(), player.getName());
-					bp = GeneralMethods.getBendingPlayer(player);
+					bp = GeneralMethods.getBendingPlayer(player.getName());
 				}
-				if (bp.getElements().size() > 1) {
-					players.add(GeneralMethods.getAvatarColor() + playerName);
-					continue;
-				} else if (bp.getElements().size() == 0) {
-					players.add(playerName);
-					continue;
-				} else if (GeneralMethods.isBender(playerName, Element.Air)) {
-					players.add(AirMethods.getAirColor() + playerName);
-					continue;
-				} else if (GeneralMethods.isBender(playerName, Element.Water)) {
-					players.add(WaterMethods.getWaterColor() + playerName);
-					continue;
-				} else if (GeneralMethods.isBender(playerName, Element.Earth)) {
-					players.add(EarthMethods.getEarthColor() + playerName);
-					continue;
-				} else if (GeneralMethods.isBender(playerName, Element.Chi)) {
-					players.add(ChiMethods.getChiColor() + playerName);
-					continue;
-				} else if (GeneralMethods.isBender(playerName, Element.Fire)) {
-					players.add(FireMethods.getFireColor() + playerName);
-					continue;
+				if (bp.hasElement(Element.Air)) {
+					result = ChatColor.WHITE + playerName + " - " + ((!bp.isElementToggled(Element.Air) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&7&mA") : AirMethods.getAirColor() + "A");
 				}
+				if (bp.hasElement(Element.Earth)) {
+					if (result == "") {
+						result = ChatColor.WHITE + playerName + " - " + ((!bp.isElementToggled(Element.Earth) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&a&mE") : EarthMethods.getEarthColor() + "E");
+					} else {
+						result = result + ChatColor.WHITE + " | " + ((!bp.isElementToggled(Element.Earth) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&a&mE") : EarthMethods.getEarthColor() + "E");
+					}
+				}
+				if (bp.hasElement(Element.Fire)) {
+					if (result == "") {
+						result = ChatColor.WHITE + playerName + " - " + ((!bp.isElementToggled(Element.Fire) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&c&mF") : FireMethods.getFireColor() + "F");
+					} else {
+						result = result + ChatColor.WHITE + " | " + ((!bp.isElementToggled(Element.Fire) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&c&mF") : FireMethods.getFireColor() + "F");
+					}
+				}
+				if (bp.hasElement(Element.Water)) {
+					if (result == "") {
+						result = ChatColor.WHITE + playerName + " - " + ((!bp.isElementToggled(Element.Water) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&b&mW") : WaterMethods.getWaterColor() + "W");
+					} else {
+						result = result + ChatColor.WHITE + " | " + ((!bp.isElementToggled(Element.Water) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&b&mW") : WaterMethods.getWaterColor() + "W");
+					}
+				}
+				if (bp.hasElement(Element.Chi)) {
+					if (result == "") {
+						result = ChatColor.WHITE + playerName + " - " + ((!bp.isElementToggled(Element.Chi) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&6&mC") : ChiMethods.getChiColor() + "C");
+					} else {
+						result = result + ChatColor.WHITE + " | " + ((!bp.isElementToggled(Element.Chi) || !bp.isToggled()) ? ChatColor.translateAlternateColorCodes('&', "&6&mC") : ChiMethods.getChiColor() + "C");
+					}
+				}
+				if (staff.containsKey(player.getUniqueId().toString())) {
+					if (result == "") {
+						result = ChatColor.WHITE + playerName + staff.get(player.getUniqueId().toString());
+					} else {
+						result = result + ChatColor.WHITE + " | " + staff.get(player.getUniqueId().toString());
+					}
+				}
+				players.add(result);
 			}
 			if (players.isEmpty()) {
 				sender.sendMessage(ChatColor.RED + "There is no one online.");
@@ -126,6 +144,7 @@ public class WhoCommand extends PKCommand {
 		//Player player = Bukkit.getPlayer(playerName);
 		@SuppressWarnings("deprecation")
 		final OfflinePlayer player = Bukkit.getOfflinePlayer(playerName);
+		BendingPlayer bplayer = GeneralMethods.getBendingPlayer(player.getName());
 		if (player == null || !player.hasPlayedBefore()) {
 			sender.sendMessage(ChatColor.RED + "Player not found!");
 			return;
@@ -167,7 +186,11 @@ public class WhoCommand extends PKCommand {
 		if (BendingPlayer.getPlayers().containsKey(player.getUniqueId())) {
 			sender.sendMessage(player.getName() + (!player.isOnline() ? ChatColor.RESET + " (Offline)" : "") + " - ");
 			if (GeneralMethods.isBender(playerName, Element.Air)) {
-				sender.sendMessage(AirMethods.getAirColor() + "- Airbender");
+				if(bplayer.isElementToggled(Element.Air)) {
+					sender.sendMessage(AirMethods.getAirColor() + "- Airbender");
+				} else {
+					sender.sendMessage(AirMethods.getAirColor() + "" + ChatColor.STRIKETHROUGH + "- Airbender");
+				}
 				if (player_ != null && AirMethods.canAirFlight((Player) player)) {
 					sender.sendMessage(GeneralMethods.getSubBendingColor(Element.Air) + "    Can Fly");
 				}
@@ -176,7 +199,11 @@ public class WhoCommand extends PKCommand {
 				}
 			}
 			if (GeneralMethods.isBender(playerName, Element.Water)) {
-				sender.sendMessage(WaterMethods.getWaterColor() + "- Waterbender");
+				if(bplayer.isElementToggled(Element.Water)) {
+					sender.sendMessage(WaterMethods.getWaterColor() + "- Waterbender");
+				} else {
+					sender.sendMessage(WaterMethods.getWaterColor() + "" + ChatColor.STRIKETHROUGH + "- Waterbender");
+				}
 				if (player_ != null && WaterMethods.canPlantbend((Player) player)) {
 					sender.sendMessage(GeneralMethods.getSubBendingColor(Element.Water) + "    Can Plantbend");
 				}
@@ -195,7 +222,11 @@ public class WhoCommand extends PKCommand {
 				}
 			}
 			if (GeneralMethods.isBender(playerName, Element.Earth)) {
-				sender.sendMessage(EarthMethods.getEarthColor() + "- Earthbender");
+				if(bplayer.isElementToggled(Element.Earth)) {
+					sender.sendMessage(EarthMethods.getEarthColor() + "- Earthbender");
+				} else {
+					sender.sendMessage(EarthMethods.getEarthColor() + "" + ChatColor.STRIKETHROUGH + "- Earthbender");
+				}
 				if (player_ != null && EarthMethods.canMetalbend((Player) player)) {
 					sender.sendMessage(GeneralMethods.getSubBendingColor(Element.Earth) + "    Can Metalbend");
 				}
@@ -207,7 +238,11 @@ public class WhoCommand extends PKCommand {
 				}
 			}
 			if (GeneralMethods.isBender(playerName, Element.Fire)) {
-				sender.sendMessage(FireMethods.getFireColor() + "- Firebender");
+				if(bplayer.isElementToggled(Element.Fire)) {
+					sender.sendMessage(FireMethods.getFireColor() + "- Firebender");
+				} else {
+					sender.sendMessage(FireMethods.getFireColor() + "" + ChatColor.STRIKETHROUGH + "- Firebender");
+				}
 				if (player_ != null && FireMethods.canCombustionbend((Player) player)) {
 					sender.sendMessage(GeneralMethods.getSubBendingColor(Element.Fire) + "    Can Combustionbend");
 				}
@@ -216,7 +251,11 @@ public class WhoCommand extends PKCommand {
 				}
 			}
 			if (GeneralMethods.isBender(playerName, Element.Chi)) {
-				sender.sendMessage(ChiMethods.getChiColor() + "- ChiBlocker");
+				if(bplayer.isElementToggled(Element.Chi)) {
+					sender.sendMessage(ChiMethods.getChiColor() + "- Chiblocker");
+				} else {
+					sender.sendMessage(ChiMethods.getChiColor() + "" + ChatColor.STRIKETHROUGH + "- Chiblocker");
+				}
 			}
 			BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(playerName);
 			UUID uuid = player.getUniqueId();

@@ -6,7 +6,6 @@ import com.projectkorra.projectkorra.command.Commands;
 import com.projectkorra.projectkorra.util.AbilityLoader;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -87,7 +86,6 @@ public class AbilityModuleManager {
 		fill();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void fill() {
 
 		for (StockAbility a : StockAbility.values()) {
@@ -372,16 +370,22 @@ public class AbilityModuleManager {
 			}
 		}
 
-		for (Field field : this.getClass().getDeclaredFields()) {
-			if (List.class.isAssignableFrom(field.getType())) {
-				try {
-					Collections.sort((List) field.get(this));
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		Collections.sort(airbendingabilities);
+		Collections.sort(firebendingabilities);
+		Collections.sort(earthbendingabilities);
+		Collections.sort(waterbendingabilities);
+		Collections.sort(chiabilities);
+		Collections.sort(iceabilities);
+		Collections.sort(lavaabilities);
+		Collections.sort(bloodabilities);
+		Collections.sort(sandabilities);
+		Collections.sort(metalabilities);
+		Collections.sort(lightningabilities);
+		Collections.sort(combustionabilities);
+		Collections.sort(healingabilities);
+		Collections.sort(flightabilities);
+		Collections.sort(plantabilities);
+		Collections.sort(spiritualprojectionabilities);
 	}
 
 	public List<String> getAbilities(String element) {

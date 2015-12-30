@@ -49,7 +49,7 @@ public class PermaremoveCommand extends PKCommand {
 		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
 		if (bPlayer == null) {
 			GeneralMethods.createBendingPlayer(player.getUniqueId(), player.getName());
-			bPlayer = GeneralMethods.getBendingPlayer(player);
+			bPlayer = GeneralMethods.getBendingPlayer(player.getName());
 		}
 
 		if (bPlayer.isPermaRemoved()) {
@@ -72,17 +72,17 @@ public class PermaremoveCommand extends PKCommand {
 	}
 
 	/**
-	 * Checks if the sender has the permission 'bending.admin.permremove'. If
+	 * Checks if the sender has the permission 'bending.admin.permaremove'. If
 	 * not, it tells them they don't have permission to use the command.
 	 * 
 	 * @return True if they have the permission, false otherwise
 	 */
 	@Override
 	public boolean hasPermission(CommandSender sender) {
-		if (sender.hasPermission("bending.admin.permremove")) {
+		if (!sender.hasPermission("bending.admin.permaremove")) {
 			sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 }

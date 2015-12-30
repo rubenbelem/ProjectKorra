@@ -4,6 +4,7 @@ import com.projectkorra.projectkorra.BendingPlayer;
 import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.SubElement;
 import com.projectkorra.projectkorra.ability.AvatarState;
 import com.projectkorra.projectkorra.util.BlockSource;
 import com.projectkorra.projectkorra.util.ClickType;
@@ -38,14 +39,15 @@ public class WaterWave {
 
 	public static boolean ICE_ONLY = false;
 	public static boolean ENABLED = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Water.WaterSpout.Wave.Enabled");
-	public static double RANGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Water.WaterSpout.Wave.Range");
 	public static double MAX_SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Water.WaterSpout.Wave.Speed");
 	public static long CHARGE_TIME = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.WaterSpout.Wave.ChargeTime");
 	public static long FLIGHT_TIME = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.WaterSpout.Wave.FlightTime");
 	public static long COOLDOWN = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.WaterSpout.Wave.Cooldown");
 	public static double WAVE_RADIUS = 1.5;
 	public static double ICE_WAVE_DAMAGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Water.WaterCombo.IceWave.Damage");
-
+	
+	private static int selectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.WaterSpout.Wave.SelectRange");
+	
 	private Player player;
 	private long time;
 	private AbilityType type;
@@ -56,7 +58,6 @@ public class WaterWave {
 	private boolean iceWave = false;
 	private int progressCounter = 0;
 	private AnimateState anim;
-	private double range = RANGE;
 	private double speed = MAX_SPEED;
 	private double chargeTime = CHARGE_TIME;
 	private double flightTime = FLIGHT_TIME;
@@ -82,7 +83,11 @@ public class WaterWave {
 
 	public void progress() {
 		progressCounter++;
-		if (player.isDead() || !player.isOnline() || !origin.getWorld().equals(player.getWorld())) {
+		if (player.isDead() || !player.isOnline()) {
+			remove();
+			return;
+		}
+		if (origin != null && !player.getWorld().equals(origin.getWorld())) {
 			remove();
 			return;
 		}
@@ -102,7 +107,7 @@ public class WaterWave {
 			if (origin == null) {
 				removeType(player, AbilityType.CLICK);
 
-				Block block = BlockSource.getWaterSourceBlock(player, range, ClickType.LEFT_CLICK, true, true, WaterMethods.canPlantbend(player));
+				Block block = BlockSource.getWaterSourceBlock(player, selectRange, selectRange, ClickType.SHIFT_DOWN, false, false, true, true, WaterMethods.canIcebend(player), WaterMethods.canPlantbend(player));
 				if (block == null) {
 					if(instances.contains(this)) {
 						remove();
@@ -126,7 +131,7 @@ public class WaterWave {
 					return;
 				}
 			}
-			if (player.getLocation().distance(origin) > range) {
+			if (player.getLocation().distance(origin) > selectRange) {
 				remove();
 				return;
 			} else if (player.isSneaking()) {
@@ -241,7 +246,7 @@ public class WaterWave {
 						if (entity != this.player && entity instanceof LivingEntity && !affectedEntities.contains(entity)) {
 							affectedEntities.add(entity);
 							final double aug = WaterMethods.getWaterbendingNightAugment(player.getWorld());
-							GeneralMethods.damageEntity(player, entity, aug * damage, Element.Water, "WaterWave");
+							GeneralMethods.damageEntity(player, entity, aug * damage, Element.Water, SubElement.Icebending, "IceWave");
 							final Player fplayer = this.player;
 							final Entity fent = entity;
 							new BukkitRunnable() {
@@ -414,14 +419,6 @@ public class WaterWave {
 
 	public void setRadius(double radius) {
 		this.radius = radius;
-	}
-
-	public double getRange() {
-		return range;
-	}
-
-	public void setRange(double range) {
-		this.range = range;
 	}
 
 	public double getSpeed() {

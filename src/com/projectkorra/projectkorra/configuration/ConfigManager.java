@@ -66,6 +66,11 @@ public class ConfigManager {
 				config.addDefault("Combo.JetBlaze", "{victim} was blasted away by {attacker}'s {ability}");
 				config.addDefault("Combo.FireWheel", "{victim} was incinerated by {attacker}'s {ability}");
 				config.addDefault("Combo.IceBullets", "{victim}'s heart was frozen by {attacker}'s {ability}");
+				
+				config.addDefault("HorizontalVelocity.AirBlast","{victim} experienced kinetic damage by {attacker}'s {ability}");
+				config.addDefault("HorizontalVelocity.AirBurst","{victim} experienced kinetic damage by {attacker}'s {ability}");
+				config.addDefault("HorizontalVelocity.AirSuction","{victim} experienced kinetic damage by {attacker}'s {ability}");
+				config.addDefault("HorizontalVelocity.Bloodbending","{victim} experienced kinetic damage by {attacker}'s {ability}");
 
 				deathMsgConfig.save();
 				break;
@@ -86,15 +91,18 @@ public class ConfigManager {
 				earthbendable.add("NETHERRACK");
 				earthbendable.add("QUARTZ_ORE");
 				earthbendable.add("REDSTONE_ORE");
-				earthbendable.add("SAND");
-				earthbendable.add("SANDSTONE");
-				earthbendable.add("RED_SANDSTONE");
 				earthbendable.add("MYCEL");
 
 				ArrayList<String> metals = new ArrayList<String>();
 				metals.add("IRON_BLOCK");
 				metals.add("GOLD_BLOCK");
 				metals.add("QUARTZ_BLOCK");
+				
+				ArrayList<String> sands = new ArrayList<String>();
+				sands.add("SAND");
+				sands.add("SANDSTONE");
+				sands.add("RED_SAND");
+				sands.add("RED_SANDSTONE");
 
 				config.addDefault("Properties.Chat.Enable", true);
 				config.addDefault("Properties.Chat.Format", "<name>: <message>");
@@ -153,6 +161,7 @@ public class ConfigManager {
 				config.addDefault("Properties.Water.DayMessage", "You feel the empowering of your waterbending subside as the moon sets.");
 				config.addDefault("Properties.Water.LunarEclipseMessage", "A lunar eclipse is out! Waterbendings are temporarily powerless.");
 				config.addDefault("Properties.Water.FullMoonMessage", "A full moon is rising, empowering your waterbending like never before.");
+				config.addDefault("Properties.Water.Range", 4);
 
 				config.addDefault("Properties.Earth.RevertEarthbending", true);
 				config.addDefault("Properties.Earth.SafeRevert", true);
@@ -160,8 +169,10 @@ public class ConfigManager {
 				config.addDefault("Properties.Earth.CanBendWithWeapons", true);
 				config.addDefault("Properties.Earth.EarthbendableBlocks", earthbendable);
 				config.addDefault("Properties.Earth.MetalBlocks", metals);
+				config.addDefault("Properties.Earth.SandBlocks", sands);
 				config.addDefault("Properties.Earth.MetalPowerFactor", 1.5);
 				config.addDefault("Properties.Earth.PlaySound", true);
+				config.addDefault("Properties.Earth.Range", 4);
 
 				config.addDefault("Properties.Fire.CanBendWithWeapons", true);
 				config.addDefault("Properties.Fire.DayFactor", 1.25);
@@ -214,11 +225,12 @@ public class ConfigManager {
 				config.addDefault("Abilities.Air.AirBubble.Radius", 7);
 
 				config.addDefault("Abilities.Air.AirBurst.Enabled", true);
-				config.addDefault("Abilities.Air.AirBurst.Description", "AirBurst is one of the most powerful abilities in the airbender's arsenal. " + "To use, press and hold sneak to charge your burst. " + "Once charged, you can either release sneak to launch a cone-shaped burst " + "of air in front of you, or click to release the burst in a sphere around you. " + "Additionally, having this ability selected when you land on the ground from a " + "large enough fall will create a burst of air around you.");
+				config.addDefault("Abilities.Air.AirBurst.Description", "AirBurst is one of the most powerful abilities in the airbender's arsenal. " + "To use, press and hold sneak to charge your burst. " + "Once charged, you can either release sneak to release the burst in a sphere around you " + "or click to launch a cone-shaped burst of air in front of you. " + "Additionally, having this ability selected when you land on the ground from a " + "large enough fall will create a burst of air around you.");
 				config.addDefault("Abilities.Air.AirBurst.FallThreshold", 10);
 				config.addDefault("Abilities.Air.AirBurst.PushFactor", 1.5);
 				config.addDefault("Abilities.Air.AirBurst.ChargeTime", 1750);
 				config.addDefault("Abilities.Air.AirBurst.Damage", 0);
+				config.addDefault("Abilities.Air.AirBurst.Cooldown", 0);
 
 				config.addDefault("Abilities.Air.AirScooter.Enabled", true);
 				config.addDefault("Abilities.Air.AirScooter.Description", "AirScooter is a fast means of transportation. To use, sprint, jump then click with " + "this ability selected. You will hop on a scooter of air and be propelled forward " + "in the direction you're looking (you don't need to press anything). " + "This ability can be used to levitate above liquids, but it cannot go up steep slopes. " + "Any other actions will deactivate this ability.");
@@ -258,6 +270,7 @@ public class ConfigManager {
 				config.addDefault("Abilities.Air.Flight.Enabled", true);
 				config.addDefault("Abilities.Air.Flight.Description", "Jump in the air, crouch (default: shift) and hold with this ability bound and you will glide around in the direction you look. While flying, click to Hover. Click again to disable Hovering.");
 				config.addDefault("Abilities.Air.Flight.HoverEnabled", true);
+				config.addDefault("Abilities.Air.Flight.Cooldown", 0);
 
 				config.addDefault("Abilities.Air.Suffocate.Enabled", true);
 				config.addDefault("Abilities.Air.Suffocate.Description", "This ability is one of the most dangerous abilities an Airbender possesses. To use, simply look at an entity and hold shift. The entity will begin taking damage as you extract the air from their lungs. Any bender caught in this sphere will only be able to use basic moves, such as AirSwipe, WaterManipulation, FireBlast, or EarthBlast. An entity can be knocked out of the sphere by certain bending arts, and your attention will be disrupted if you are hit by bending.");
@@ -310,7 +323,7 @@ public class ConfigManager {
 
 				config.addDefault("Abilities.Water.Bloodbending.Enabled", true);
 				config.addDefault("Abilities.Water.Bloodbending.Description", "This ability was made illegal for a reason. With this ability selected, sneak while " + "targetting something and you will bloodbend that target. Bloodbent targets cannot move, " + "bend or attack. You are free to control their actions by looking elsewhere - they will " + "be forced to move in that direction. Additionally, clicking while bloodbending will " + "launch that target off in the direction you're looking. " + "People who are capable of bloodbending are immune to your technique, and you are immune to theirs.");
-				config.addDefault("Abilities.Water.Bloodbending.CanOnlyBeUsedAtNight", false);
+				config.addDefault("Abilities.Water.Bloodbending.CanOnlyBeUsedAtNight", true);
 				config.addDefault("Abilities.Water.Bloodbending.CanBeUsedOnUndeadMobs", true);
 				config.addDefault("Abilities.Water.Bloodbending.ThrowFactor", 2);
 				config.addDefault("Abilities.Water.Bloodbending.Range", 10);
@@ -329,8 +342,13 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.IceBlast.Damage", 3);
 				config.addDefault("Abilities.Water.IceBlast.Range", 20);
 				config.addDefault("Abilities.Water.IceBlast.Cooldown", 1500);
+				config.addDefault("Abilities.Water.IceBlast.SelectRange", 12);
+				config.addDefault("Abilities.Water.IceBlast.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.IceBlast.AutoSourcing.Cooldown", 1500);
+				config.addDefault("Abilities.Water.IceBlast.AutoSourcing.SelectRange", 5);
 				config.addDefault("Abilities.Water.IceBlast.Description", "This ability offers a powerful ice utility for Waterbenders. It can be used to fire an explosive burst of ice at an opponent, spraying ice and snow around it. To use, simply tap sneak (Default: Shift) while targeting a block of ice to select it as a source. From there, you can just left click to send the blast off at your opponent.");
-
+				config.addDefault("Abilities.Water.IceBlast.DynamicSourcing.Enabled", true);
+				
 				config.addDefault("Abilities.Water.IceSpike.Enabled", true);
 				config.addDefault("Abilities.Water.IceSpike.Description", "This ability has many functions. Clicking while targetting ice, or an entity over some ice, " + "will raise a spike of ice up, damaging and slowing the target. Tapping sneak (shift) while" + " selecting a water source will select that source that can then be fired with a click. Firing" + " this will launch a spike of ice at your target, dealing a bit of damage and slowing the target. " + "If you sneak (shift) while not selecting a source, many ice spikes will erupt from around you, " + "damaging and slowing those targets.");
 				config.addDefault("Abilities.Water.IceSpike.Cooldown", 2000);
@@ -340,6 +358,8 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.IceSpike.Height", 6);
 				config.addDefault("Abilities.Water.IceSpike.Projectile.Range", 20);
 				config.addDefault("Abilities.Water.IceSpike.Projectile.Damage", 1);
+				config.addDefault("Abilities.Water.IceSpike.Projectile.SelectRange", 12);
+				config.addDefault("Abilities.Water.IceSpike.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Water.OctopusForm.Enabled", true);
 				config.addDefault("Abilities.Water.OctopusForm.Description", "This ability allows the waterbender to manipulate a large quantity of water into a form resembling that of an octopus. " + "To use, click to select a water source. Then, hold sneak to channel this ability. " + "While channeling, the water will form itself around you and has a chance to block incoming attacks. " + "Additionally, you can click while channeling to attack things near you, dealing damage and knocking them back. " + "Releasing shift at any time will dissipate the form.");
@@ -349,27 +369,40 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.OctopusForm.Damage", 4);
 				config.addDefault("Abilities.Water.OctopusForm.Knockback", 1.75);
 				config.addDefault("Abilities.Water.OctopusForm.FormDelay", 40);
+				config.addDefault("Abilities.Water.OctopusForm.SelectRange", 12);
+				config.addDefault("Abilities.Water.OctopusForm.Cooldown", 0);
+				config.addDefault("Abilities.Water.OctopusForm.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.OctopusForm.AutoSourcing.Cooldown", 1500);
+				config.addDefault("Abilities.Water.OctopusForm.AutoSourcing.SelectRange", 5);
+				config.addDefault("Abilities.Water.OctopusForm.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Water.PhaseChange.Enabled", true);
 				config.addDefault("Abilities.Water.PhaseChange.Description", "To use, simply left-click. " + "Any water you are looking at within range will instantly freeze over into solid ice. " + "Provided you stay within range of the ice and do not unbind FreezeMelt, " + "that ice will not thaw. If, however, you do either of those the ice will instantly thaw. " + "If you sneak (default: shift), anything around where you are looking at will instantly melt. " + "Since this is a more favorable state for these things, they will never re-freeze unless they " + "would otherwise by nature or some other bending ability. Additionally, if you tap sneak while " + "targetting water with FreezeMelt, it will evaporate water around that block that is above " + "sea level. ");
-				config.addDefault("Abilities.Water.PhaseChange.Range", 20);
-				config.addDefault("Abilities.Water.PhaseChange.Radius", 5);
+				config.addDefault("Abilities.Water.PhaseChange.Range", 15);
+				config.addDefault("Abilities.Water.PhaseChange.Radius", 4);
+				config.addDefault("Abilities.Water.PhaseChange.Cooldown", 0);
 
 				config.addDefault("Abilities.Water.PlantArmor.Enabled", true);
 				config.addDefault("Abilities.Water.PlantArmor.Description", "PlantArmor is a defensive ability in the arsenal of the plantbender. Clicking on leaves with this ability will temporarily clad you in strong armor made out of plants! You can use this defensively, but you can also use the armor as a source for other plantbending skills.");
 				config.addDefault("Abilities.Water.PlantArmor.Duration", 7500);
 				config.addDefault("Abilities.Water.PlantArmor.Resistance", 1);
 				config.addDefault("Abilities.Water.PlantArmor.Cooldown", 10000);
-				config.addDefault("Abilities.Water.PlantArmor.Range", 10);
+				config.addDefault("Abilities.Water.PlantArmor.SelectRange", 12);
+				config.addDefault("Abilities.Water.PlantArmor.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.PlantArmor.AutoSourcing.Cooldown", 10000);
+				config.addDefault("Abilities.Water.PlantArmor.AutoSourcing.SelectRange", 5);
 
 				config.addDefault("Abilities.Water.Surge.Enabled", true);
 				config.addDefault("Abilities.Water.Surge.Description", "This ability has two distinct features. If you sneak to select a source block, you can then click in a direction and a large wave will be launched in that direction. If you sneak again while the wave is en route, the wave will freeze the next target it hits. If, instead, you click to select a source block, you can hold sneak to form a wall of water at your cursor location. Click to shift between a water wall and an ice wall. Release sneak to dissipate it.");
 				config.addDefault("Abilities.Water.Surge.Wave.Radius", 3);
 				config.addDefault("Abilities.Water.Surge.Wave.Range", 20);
+				config.addDefault("Abilities.Water.Surge.Wave.SelectRange", 6);
 				config.addDefault("Abilities.Water.Surge.Wave.HorizontalPush", 1);
+				config.addDefault("Abilities.Water.Surge.Wave.DynamicSourcing.Enabled", true);
 				config.addDefault("Abilities.Water.Surge.VerticalPush", 0.2);
-				config.addDefault("Abilities.Water.Surge.Wall.Range", 5);
 				config.addDefault("Abilities.Water.Surge.Wall.Radius", 2);
+				config.addDefault("Abilities.Water.Surge.Wall.SelectRange", 6);
+				config.addDefault("Abilities.Water.Surge.Wall.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Water.Torrent.Enabled", true);
 				config.addDefault("Abilities.Water.Torrent.Description", "Torrent is one of the strongest moves in a waterbender's arsenal. To use, first click a source block to select it; then hold shift to begin streaming the water around you. Water flowing around you this way will damage and knock back nearby enemies and projectiles. If you release shift during this, you will create a large wave that expands outwards from you, launching anything in its path back. Instead, if you click you release the water and channel it to flow towards your cursor. Anything caught in the blast will be tossed about violently and take damage. Finally, if you click again when the water is torrenting, it will freeze the area around it when it is obstructed.");
@@ -379,6 +412,11 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.Torrent.Wave.Radius", 15);
 				config.addDefault("Abilities.Water.Torrent.Wave.Knockback", 1.5);
 				config.addDefault("Abilities.Water.Torrent.Wave.Height", 1);
+				config.addDefault("Abilities.Water.Torrent.SelectRange", 12);
+				config.addDefault("Abilities.Water.Torrent.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.Torrent.AutoSourcing.Cooldown", 1500);
+				config.addDefault("Abilities.Water.Torrent.AutoSourcing.SelectRange", 5);
+				config.addDefault("Abilities.Water.Torrent.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Water.Plantbending.RegrowTime", 180000);
 
@@ -445,7 +483,13 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.WaterManipulation.Range", 30);
 				config.addDefault("Abilities.Water.WaterManipulation.Speed", 35);
 				config.addDefault("Abilities.Water.WaterManipulation.Push", 0.3);
-				config.addDefault("Abilities.Water.WaterManipulation.Cooldown", 1000);
+				config.addDefault("Abilities.Water.WaterManipulation.SelectRange", 12);
+				config.addDefault("Abilities.Water.WaterManipulation.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.WaterManipulation.AutoSourcing.Cooldown", 1500);
+				config.addDefault("Abilities.Water.WaterManipulation.AutoSourcing.SelectRange", 5);
+				config.addDefault("Abilities.Water.WaterManipulation.DynamicSourcing.Enabled", true);
+				config.addDefault("Abilities.Water.WaterManipulation.Cooldown", 1500);
+	
 
 				config.addDefault("Abilities.Water.WaterSpout.Enabled", true);
 				config.addDefault("Abilities.Water.WaterSpout.Description", "This ability provides a Waterbender with a means of transportation. To use, simply left click while in or over water to spout water up beneath you, experiencing controlled levitation. Left clicking again while the spout is active will cause it to disappear. Alternatively, tapping a Waterbendable block while not in Water will select a water block as a source, from there, you can tap sneak (Default:Shift) to channel the Water around you. Releasing the sneak will create a wave allowing you a quick burst of controlled transportation. While riding the wave you may press sneak to cause the wave to disappear.");
@@ -454,11 +498,10 @@ public class ConfigManager {
 				config.addDefault("Abilities.Water.WaterSpout.Particles", false);
 				config.addDefault("Abilities.Water.WaterSpout.Wave.Particles", false);
 				config.addDefault("Abilities.Water.WaterSpout.Wave.Enabled", true);
-				config.addDefault("Abilities.Water.WaterSpout.Wave.Range", 6);
 				config.addDefault("Abilities.Water.WaterSpout.Wave.ChargeTime", 500);
 				config.addDefault("Abilities.Water.WaterSpout.Wave.FlightTime", 2500);
 				config.addDefault("Abilities.Water.WaterSpout.Wave.Speed", 1.3);
-				config.addDefault("Abilities.Water.WaterSpout.Wave.Cooldown", 4500);
+				config.addDefault("Abilities.Water.WaterSpout.Wave.SelectRange", 12);
 
 				config.addDefault("Abilities.Water.WaterCombo.Enabled", true);
 				config.addDefault("Abilities.Water.WaterCombo.IceWave.Damage", 4);
@@ -479,32 +522,46 @@ public class ConfigManager {
 				config.addDefault("Abilities.Earth.Catapult.Length", 6);
 				config.addDefault("Abilities.Earth.Catapult.Speed", 10);
 				config.addDefault("Abilities.Earth.Catapult.Push", 4);
+				config.addDefault("Abilities.Earth.Catapult.ShiftModifier", 2);
+				config.addDefault("Abilities.Earth.Catapult.Cooldown", 0);
 
 				config.addDefault("Abilities.Earth.Collapse.Enabled", true);
 				config.addDefault("Abilities.Earth.Collapse.Description", " To use, simply left-click on an earthbendable block. " + "That block and the earthbendable blocks above it will be shoved " + "back into the earth below them, if they can. " + "This ability does have the capacity to trap something inside of it, " + "although it is incredibly difficult to do so. " + "Additionally, press sneak with this ability to affect an area around your targetted location - " + "all earth that can be moved downwards will be moved downwards. " + "This ability is especially risky or deadly in caves, depending on the " + "earthbender's goal and technique.");
-				config.addDefault("Abilities.Earth.Collapse.Range", 20);
+				config.addDefault("Abilities.Earth.Collapse.SelectRange", 20);
 				config.addDefault("Abilities.Earth.Collapse.Radius", 7);
 				config.addDefault("Abilities.Earth.Collapse.Speed", 8);
+				config.addDefault("Abilities.Earth.Collapse.Cooldown", 0);
+				config.addDefault("Abilities.Earth.Collapse.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Earth.EarthArmor.Enabled", true);
 				config.addDefault("Abilities.Earth.EarthArmor.Description", "This ability encases the earthbender in temporary armor. To use, click on a block that is earthbendable. If there is another block under it that is earthbendable, the block will fly to you and grant you temporary armor and damage reduction. This ability has a long cooldown.");
 				config.addDefault("Abilities.Earth.EarthArmor.Duration", 10000);
 				config.addDefault("Abilities.Earth.EarthArmor.Strength", 2);
+				config.addDefault("Abilities.Earth.EarthArmor.SelectRange", 20);
 				config.addDefault("Abilities.Earth.EarthArmor.Cooldown", 17500);
+				config.addDefault("Abilities.Earth.EarthArmor.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Earth.EarthArmor.AutoSourcing.SelectRange", 5);
+				config.addDefault("Abilities.Earth.EarthArmor.AutoSourcing.Cooldown", 17500);
 
 				config.addDefault("Abilities.Earth.EarthBlast.Enabled", true);
 				config.addDefault("Abilities.Earth.EarthBlast.Description", "To use, place your cursor over an earthbendable object (dirt, rock, ores, etc) " + "and tap sneak (default: shift). The object will temporarily turn to stone, " + "indicating that you have it focused as the source for your ability. " + "After you have selected an origin (you no longer need to be sneaking), " + "simply left-click in any direction and you will see your object launch " + "off in that direction, smashing into any creature in its path. If you look " + "towards a creature when you use this ability, it will target that creature. " + "A collision from Earth Blast both knocks the target back and deals some damage. " + "You cannot have multiple of these abilities flying at the same time.");
 				config.addDefault("Abilities.Earth.EarthBlast.CanHitSelf", false);
-				config.addDefault("Abilities.Earth.EarthBlast.PrepareRange", 10);
-				config.addDefault("Abilities.Earth.EarthBlast.Range", 30);
+				config.addDefault("Abilities.Earth.EarthBlast.Radius", 30);
 				config.addDefault("Abilities.Earth.EarthBlast.Speed", 35);
+				config.addDefault("Abilities.Earth.EarthBlast.SelectRange", 20);
 				config.addDefault("Abilities.Earth.EarthBlast.Revert", true);
 				config.addDefault("Abilities.Earth.EarthBlast.Damage", 3);
 				config.addDefault("Abilities.Earth.EarthBlast.Push", 0.3);
+				config.addDefault("Abilities.Earth.EarthBlast.Cooldown", 1500);
+				config.addDefault("Abilities.Earth.EarthBlast.AutoSourcing.Enabled", true);
+				config.addDefault("Abilities.Earth.EarthBlast.AutoSourcing.Cooldown", 1500);
+				config.addDefault("Abilities.Earth.EarthBlast.AutoSourcing.SelectRange", 5);
+				config.addDefault("Abilities.Earth.EarthBlast.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Earth.EarthGrab.Enabled", true);
 				config.addDefault("Abilities.Earth.EarthGrab.Description", "To use, simply left-click while targeting a creature within range. " + "This ability will erect a circle of earth to trap the creature in.");
 				config.addDefault("Abilities.Earth.EarthGrab.Range", 8);
+				config.addDefault("Abilities.Earth.EarthGrab.Cooldown", 0);
 
 				config.addDefault("Abilities.Earth.EarthTunnel.Enabled", true);
 				config.addDefault("Abilities.Earth.EarthTunnel.Description", "Earth Tunnel is a completely utility ability for earthbenders. To use, simply sneak (default: shift) in the direction you want to tunnel. You will slowly begin tunneling in the direction you're facing for as long as you sneak or if the tunnel has been dug long enough. This ability will be interrupted if it hits a block that cannot be earthbent.");
@@ -528,7 +585,7 @@ public class ConfigManager {
 				config.addDefault("Abilities.Earth.LavaFlow.ShiftCleanupDelay", 10000);
 				config.addDefault("Abilities.Earth.LavaFlow.ClickLavaCleanupDelay", 7000);
 				config.addDefault("Abilities.Earth.LavaFlow.ClickLandCleanupDelay", 20000);
-				config.addDefault("Abilities.Earth.LavaFlow.ClickRange", 10.0);
+				config.addDefault("Abilities.Earth.LavaFlow.ClickRange", 10);
 				config.addDefault("Abilities.Earth.LavaFlow.ShiftRadius", 7.0);
 				config.addDefault("Abilities.Earth.LavaFlow.ShiftPlatformRadius", 1.5);
 				config.addDefault("Abilities.Earth.LavaFlow.ClickRadius", 5.0);
@@ -542,6 +599,7 @@ public class ConfigManager {
 				config.addDefault("Abilities.Earth.LavaFlow.DownwardFlow", 4);
 				config.addDefault("Abilities.Earth.LavaFlow.AllowNaturalFlow", false);
 				config.addDefault("Abilities.Earth.LavaFlow.ParticleDensity", 0.11);
+				config.addDefault("Abilities.Earth.LavaFlow.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Earth.EarthSmash.Enabled", true);
 				config.addDefault("Abilities.Earth.EarthSmash.Description", "To raise an EarthSmash hold sneak (default: shift) for approximately 1.5 seconds, " + "then release while aiming at dirt. To grab the EarthSmash aim at the center and hold sneak, " + "the EarthSmash will follow your mouse. You can shoot the EarthSmash by grabbing onto it and left clicking. " + "To ride the EarthSmash simply hop ontop of it and hold sneak while aiming in the direction that you wish to go. " + "Another way to ride an EarthSmash is to grab it with sneak and then right click it. " + "Use EarthSmash as a defensive shield, a powerful attack, or an advanced means of transportation.");
@@ -559,31 +617,24 @@ public class ConfigManager {
 				config.addDefault("Abilities.Earth.EarthSmash.FlightTimer", 3000);
 				config.addDefault("Abilities.Earth.EarthSmash.RemoveTimer", 30000);
 
-				//			config.addDefault("Abilities.Earth.LavaSurge.Enabled", true);
-				//		    config.addDefault("Abilities.Earth.LavaSurge.Description", "LavaSurge is a fundamental move for any Lavabender out there. To use, simply sneak (Default: Shift) while looking at a source of Earth or Lava, then click in a direction. A surge of lava will swiftly travel towards the target you were pointing at, dealing moderate damage, a large knockback, and setting them on fire.");
-				//		    config.addDefault("Abilities.Earth.LavaSurge.Damage", 4);
-				//		    config.addDefault("Abilities.Earth.LavaSurge.Cooldown", 1000);
-				//			config.addDefault("Abilities.Earth.LavaSurge.FractureRadius", 1);
-				//			config.addDefault("Abilities.Earth.LavaSurge.PrepareRange", 7);
-				//			config.addDefault("Abilities.Earth.LavaSurge.TravelRange", 15);
-				//			config.addDefault("Abilities.Earth.LavaSurge.MaxLavaWaves", 10);
-				//			config.addDefault("Abilities.Earth.LavaSurge.SourceCanBeEarth", true);
-
 				config.addDefault("Abilities.Earth.MetalClips.Enabled", true);
-				config.addDefault("Abilities.Earth.MetalClips.Description", "MetalClips has the potential to be both an offensive and a utility ability. To start, you must carry smelted Iron Ingots in your inventory. To apply the clips onto an entity, simply click at them. If the entity is a Zombie, a Skeleton, or a Player, the clips will form armor around the entity, giving you some control over them. Each additional clip will give you more control. If you have permission to do so, you may crush the entity against a wall with a 4th clip, hurting them. Without explicit permissions, you will only be able to strap three clips on your target. If the entity is not one of the above, the clip will simply do damage and fall to the ground, to be collected.");
+				config.addDefault("Abilities.Earth.MetalClips.Description", "MetalClips has the potential to be both an offensive and a utility ability. To start, you must carry smelted Iron Ingots in your inventory. To apply the clips onto an entity, simply click at them. If the entity is a Zombie, a Skeleton, or a Player, the clips will form armor around the entity, giving you some control over them. Each additional clip will give you more control. If you have permission to do so, you may crush the entity against a wall with a 4th clip, hurting them. Without explicit permissions, you will only be able to strap three clips on your target. If the entity is not one of the above, the clip will simply do damage and fall to the ground, to be collected. Another permission requiring action is throwing entities. To do so, click while controlling a metalclipped entity");
 				config.addDefault("Abilities.Earth.MetalClips.Damage", 2);
 				config.addDefault("Abilities.Earth.MetalClips.DamageInterval", 500);
 				config.addDefault("Abilities.Earth.MetalClips.MagnetRange", 20);
 				config.addDefault("Abilities.Earth.MetalClips.MagnetPower", 0.6);
 				config.addDefault("Abilities.Earth.MetalClips.Cooldown", 1000);
 				config.addDefault("Abilities.Earth.MetalClips.Duration", 10000);
+				config.addDefault("Abilities.Earth.MetalClips.ThrowEnabled", false);
 
 				config.addDefault("Abilities.Earth.RaiseEarth.Enabled", true);
 				config.addDefault("Abilities.Earth.RaiseEarth.Description", "To use, simply left-click on an earthbendable block. " + "A column of earth will shoot upwards from that location. " + "Anything in the way of the column will be brought up with it, " + "leaving talented benders the ability to trap brainless entities up there. " + "Additionally, simply sneak (default shift) looking at an earthbendable block. " + "A wall of earth will shoot upwards from that location. " + "Anything in the way of the wall will be brought up with it. ");
 				config.addDefault("Abilities.Earth.RaiseEarth.Column.Height", 6);
-				config.addDefault("Abilities.Earth.RaiseEarth.Wall.Range", 15);
+				config.addDefault("Abilities.Earth.RaiseEarth.SelectRange", 15);
 				config.addDefault("Abilities.Earth.RaiseEarth.Wall.Height", 6);
 				config.addDefault("Abilities.Earth.RaiseEarth.Wall.Width", 6);
+				config.addDefault("Abilities.Earth.RaiseEarth.Cooldown", 0);
+				config.addDefault("Abilities.Earth.RaiseEarth.DynamicSourcing.Enabled", true);
 
 				config.addDefault("Abilities.Earth.Shockwave.Enabled", true);
 				config.addDefault("Abilities.Earth.Shockwave.Description", "This is one of the most powerful moves in the earthbender's arsenal. " + "To use, you must first charge it by holding sneak (default: shift). " + "Once charged, you can release sneak to create an enormous shockwave of earth, " + "disturbing all earth around you and expanding radially outwards. " + "Anything caught in the shockwave will be blasted back and dealt damage. " + "If you instead click while charged, the disruption is focused in a cone in front of you. " + "Lastly, if you fall from a great enough height with this ability selected, you will automatically create a shockwave.");
@@ -592,6 +643,7 @@ public class ConfigManager {
 				config.addDefault("Abilities.Earth.Shockwave.Damage", 4);
 				config.addDefault("Abilities.Earth.Shockwave.Knockback", 1.1);
 				config.addDefault("Abilities.Earth.Shockwave.Range", 15);
+				config.addDefault("Abilities.Earth.Shockwave.Cooldown", 0);
 
 				config.addDefault("Abilities.Earth.SandSpout.Enabled", true);
 				config.addDefault("Abilities.Earth.SandSpout.Description", "SandSpout is a core move for travelling, evasion, and mobility for sandbenders. To use, simply left click while over sand or sandstone, and a column of sand will form at your feet, enabling you to levitate. Any mobs or players that touch your column will receive damage and be blinded. Beware, as the spout will stop working when no longer over sand!");
@@ -614,6 +666,7 @@ public class ConfigManager {
 				config.addDefault("Abilities.Fire.Blaze.ArcOfFire.Arc", 16);
 				config.addDefault("Abilities.Fire.Blaze.ArcOfFire.Range", 7);
 				config.addDefault("Abilities.Fire.Blaze.RingOfFire.Range", 7);
+				config.addDefault("Abilities.Fire.Blaze.Cooldown", 0);
 
 				config.addDefault("Abilities.Fire.Combustion.Enabled", true);
 				config.addDefault("Abilities.Fire.Combustion.Description", "Combustion is a powerful ability only known by a few skilled Firebenders. It allows the bender to Firebend with their mind, concentrating energy to create a powerful blast. To use, simply tap sneak (Default: Shift) to launch the blast. This technique is highly destructive and very effective, it also comes with a long cooldown.");
@@ -645,10 +698,11 @@ public class ConfigManager {
 				config.addDefault("Abilities.Fire.FireBlast.Charged.FireTicks", 4);
 
 				config.addDefault("Abilities.Fire.FireBurst.Enabled", true);
-				config.addDefault("Abilities.Fire.FireBurst.Description", "FireBurst is a very powerful firebending ability. " + "To use, press and hold sneak to charge your burst. " + "Once charged, you can either release sneak to launch a cone-shaped burst " + "of flames in front of you, or click to release the burst in a sphere around you. ");
+				config.addDefault("Abilities.Fire.FireBurst.Description", "FireBurst is a very powerful firebending ability. " + "To use, press and hold sneak to charge your burst. " + "Once charged, you can either release sneak to release the burst in a sphere around you or " + "click to launch a cone-shaped burst of flames in front of you.");
 				config.addDefault("Abilities.Fire.FireBurst.Damage", 2);
 				config.addDefault("Abilities.Fire.FireBurst.ChargeTime", 3500);
 				config.addDefault("Abilities.Fire.FireBurst.Range", 15);
+				config.addDefault("Abilities.Fire.FireBurst.Cooldown", 0);
 
 				config.addDefault("Abilities.Fire.FireJet.Enabled", true);
 				config.addDefault("Abilities.Fire.FireJet.Description", "This ability is used for a limited burst of flight for firebenders. Clicking with this " + "ability selected will launch you in the direction you're looking, granting you " + "controlled flight for a short time. This ability can be used mid-air to prevent falling " + "to your death, but on the ground it can only be used if standing on a block that's " + "ignitable (e.g. not snow or water).");
@@ -731,8 +785,8 @@ public class ConfigManager {
 				config.addDefault("Abilities.Chi.Passive.FallReductionFactor", 0.5);
 				config.addDefault("Abilities.Chi.Passive.Speed", 1);
 				config.addDefault("Abilities.Chi.Passive.Jump", 1);
+				config.addDefault("Abilities.Chi.Passive.BlockChi.Chance", 35);
 				config.addDefault("Abilities.Chi.Passive.BlockChi.Duration", 1000);
-				config.addDefault("Abilities.Chi.Passive.DodgeChange", 25);
 
 				config.addDefault("Abilities.Chi.ChiCombo.Enabled", true);
 				config.addDefault("Abilities.Chi.ChiCombo.Immobilize.ParalyzeDuration", 4000);
@@ -740,7 +794,7 @@ public class ConfigManager {
 
 				config.addDefault("Abilities.Chi.AcrobatStance.Enabled", true);
 				config.addDefault("Abilities.Chi.AcrobatStance.Description", "AcrobatStance gives a Chiblocker a higher probability of blocking a Bender's Chi while granting them a Speed and Jump Boost. It also increases the rate at which the hunger bar depletes. To use, simply left click. Left clicking again will de-activate the stance.");
-				config.addDefault("Abilities.Chi.ChiBlockBoost", 0.1);
+				config.addDefault("Abilities.Chi.AcrobatStance.ChiBlockBoost", 5);
 
 				config.addDefault("Abilities.Chi.HighJump.Enabled", true);
 				config.addDefault("Abilities.Chi.HighJump.Description", "To use this ability, simply click. You will jump quite high. This ability has a short cooldown.");
@@ -755,9 +809,9 @@ public class ConfigManager {
 				config.addDefault("Abilities.Chi.RapidPunch.Enabled", true);
 				config.addDefault("Abilities.Chi.RapidPunch.Description", "This ability allows the chiblocker to punch rapidly in a short period. To use, simply punch. This has a short cooldown.");
 				config.addDefault("Abilities.Chi.RapidPunch.Damage", 1);
-				config.addDefault("Abilities.Chi.RapidPunch.Distance", 4);
+				config.addDefault("Abilities.Chi.RapidPunch.Distance", 3);
 				config.addDefault("Abilities.Chi.RapidPunch.Cooldown", 6000);
-				config.addDefault("Abilities.Chi.RapidPunch.Punches", 4);
+				config.addDefault("Abilities.Chi.RapidPunch.Punches", 3);
 
 				config.addDefault("Abilities.Chi.Smokescreen.Enabled", true);
 				config.addDefault("Abilities.Chi.Smokescreen.Description", "Smokescren, if used correctly, can serve as a defensive and offensive ability for Chiblockers. To use, simply left click and you will toss out a Smoke Bomb. When the bomb hits the ground, it will explode and give all players within a small radius of the explosion temporary blindness, allowing you to either get away, or move in for the kill. This ability has a long cooldown.");
@@ -773,12 +827,12 @@ public class ConfigManager {
 				config.addDefault("Abilities.Chi.QuickStrike.Enabled", true);
 				config.addDefault("Abilities.Chi.QuickStrike.Description", "QuickStrike enables a chiblocker to quickly strike an enemy, potentially blocking their chi.");
 				config.addDefault("Abilities.Chi.QuickStrike.Damage", 1);
-				config.addDefault("Abilities.Chi.QuickStrike.ChiBlockChance", 15);
+				config.addDefault("Abilities.Chi.QuickStrike.ChiBlockChance", 10);
 
 				config.addDefault("Abilities.Chi.SwiftKick.Enabled", true);
 				config.addDefault("Abilities.Chi.SwiftKick.Description", "SwiftKick allows a chiblocker to swiftly kick an enemy, potentially blocking their chi. The chiblocker must be in the air to use this ability.");
 				config.addDefault("Abilities.Chi.SwiftKick.Damage", 2);
-				config.addDefault("Abilities.Chi.SwiftKick.ChiBlockChance", 25);
+				config.addDefault("Abilities.Chi.SwiftKick.ChiBlockChance", 15);
 
 				config.addDefault("Storage.engine", "sqlite");
 

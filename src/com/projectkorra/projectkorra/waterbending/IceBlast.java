@@ -31,6 +31,13 @@ public class IceBlast {
 	private static double defaultrange = ProjectKorra.plugin.getConfig().getDouble("Abilities.Water.IceBlast.Range");
 	private static int DAMAGE = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceBlast.Damage");
 	private static int COOLDOWN = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceBlast.Cooldown");
+	private static int autoSelectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceBlast.AutoSourcing.SelectRange");
+	private static int selectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceBlast.SelectRange");
+	private static boolean auto = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Water.IceBlast.AutoSourcing.Enabled");
+	private static long autocooldown = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.IceBlast.AutoSourcing.Cooldown");
+	private static boolean dynamic = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Water.IceBlast.DynamicSourcing.Enabled");
+	
+	private boolean isAuto;
 	private static int ID = Integer.MIN_VALUE;
 
 	private static final long interval = 20;
@@ -64,7 +71,13 @@ public class IceBlast {
 		block(player);
 		range = WaterMethods.waterbendingNightAugment(defaultrange, player.getWorld());
 		this.player = player;
-		Block sourceblock = BlockSource.getWaterSourceBlock(player, range, ClickType.SHIFT_DOWN, false, true, false);
+		Block sourceblock = BlockSource.getWaterSourceBlock(player, autoSelectRange, selectRange, ClickType.SHIFT_DOWN, auto, dynamic, false, false,
+				WaterMethods.canIcebend(player), false);
+		if (BlockSource.isAuto(sourceblock)) {
+			isAuto = true;
+		} else {
+			isAuto = false;
+		}
 
 		if (sourceblock == null) {
 			return;
@@ -128,7 +141,10 @@ public class IceBlast {
 			Location location = player.getEyeLocation();
 			Vector vector = location.getDirection();
 			Location mloc = ice.location;
-			if (mloc.distance(location) <= defaultrange && GeneralMethods.getDistanceFromLine(vector, location, ice.location) < deflectrange && mloc.distance(location.clone().add(vector)) < mloc.distance(location.clone().add(vector.clone().multiply(-1)))) {
+			if (mloc.distance(location) <= defaultrange
+					&& GeneralMethods.getDistanceFromLine(vector, location, ice.location) < deflectrange
+					&& mloc.distance(location.clone().add(vector)) < mloc
+							.distance(location.clone().add(vector.clone().multiply(-1)))) {
 				ice.cancel();
 			}
 
@@ -155,9 +171,15 @@ public class IceBlast {
 				source.revertBlock();
 			progressing = false;
 		}
-		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
-		if (bPlayer != null) {
-			bPlayer.addCooldown("IceBlast", cooldown);
+		if (player.isOnline()) {
+			BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
+			if (bPlayer != null) {
+				if (isAuto) {
+					bPlayer.addCooldown("IceBlast", autocooldown);
+				} else {
+					bPlayer.addCooldown("IceBlast", cooldown);
+				}
+			}
 		}
 		instances.remove(id);
 	}
@@ -182,19 +204,21 @@ public class IceBlast {
 				PotionEffect effect = new PotionEffect(PotionEffectType.SLOW, 70, 2);
 				new TempPotionEffect(entity, effect);
 				bPlayer.slow(10);
-				//entity.damage(damage, player);
+				// entity.damage(damage, player);
 				GeneralMethods.damageEntity(player, entity, damage, "IceBlast");
 			}
 		} else {
 			PotionEffect effect = new PotionEffect(PotionEffectType.SLOW, 70, 2);
 			new TempPotionEffect(entity, effect);
-			//entity.damage(damage, player);
+			// entity.damage(damage, player);
 			GeneralMethods.damageEntity(player, entity, damage, "IceBlast");
 		}
 		AirMethods.breakBreathbendingHold(entity);
 
 		for (int x = 0; x < 30; x++) {
-			ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0), new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), .3f, location, 257.0D);
+			ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0),
+					new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), .3f,
+					location, 257.0D);
 		}
 	}
 
@@ -228,8 +252,12 @@ public class IceBlast {
 	}
 
 	private void progress() {
+		if (player.isDead() || !player.isOnline()) {
+			cancel();
+			return;
+		}
 		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
-		if (player.isDead() || !player.isOnline() || !GeneralMethods.canBend(player.getName(), "IceBlast") || bPlayer.isOnCooldown("IceBlast")) {
+		if (!GeneralMethods.canBend(player.getName(), "IceBlast") || bPlayer.isOnCooldown("IceBlast")) {
 			cancel();
 			return;
 		}
@@ -251,7 +279,8 @@ public class IceBlast {
 			return;
 		}
 
-		if ((GeneralMethods.getBoundAbility(player) == null || !GeneralMethods.getBoundAbility(player).equalsIgnoreCase("IceBlast")) && prepared) {
+		if ((GeneralMethods.getBoundAbility(player) == null
+				|| !GeneralMethods.getBoundAbility(player).equalsIgnoreCase("IceBlast")) && prepared) {
 			cancel();
 			return;
 		}
@@ -322,8 +351,11 @@ public class IceBlast {
 			source = new TempBlock(sourceblock, Material.PACKED_ICE, data);
 
 			for (int x = 0; x < 10; x++) {
-				ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0), new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), .5f, location, 257.0D);
-				ParticleEffect.SNOW_SHOVEL.display(location, (float) (Math.random() - 0.5), (float) (Math.random() - 0.5), (float) (Math.random() - 0.5), 0, 5);
+				ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0),
+						new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), .5f,
+						location, 257.0D);
+				ParticleEffect.SNOW_SHOVEL.display(location, (float) (Math.random() - 0.5), (float) (Math.random() - 0.5),
+						(float) (Math.random() - 0.5), 0, 5);
 			}
 			if (GeneralMethods.rand.nextInt(4) == 0) {
 				WaterMethods.playIcebendingSound(location);
@@ -364,8 +396,11 @@ public class IceBlast {
 
 	public void breakParticles(int amount) {
 		for (int x = 0; x < amount; x++) {
-			ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0), new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), 2f, location, 257.0D);
-			ParticleEffect.SNOW_SHOVEL.display(location, (float) Math.random(), (float) Math.random(), (float) Math.random(), 0, 2);
+			ParticleEffect.ITEM_CRACK.display(new ParticleEffect.ItemData(Material.ICE, (byte) 0),
+					new Vector(((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5), ((Math.random() - 0.5) * .5)), 2f,
+					location, 257.0D);
+			ParticleEffect.SNOW_SHOVEL.display(location, (float) Math.random(), (float) Math.random(), (float) Math.random(), 0,
+					2);
 		}
 		location.getWorld().playSound(location, Sound.GLASS, 5, 1.3f);
 	}

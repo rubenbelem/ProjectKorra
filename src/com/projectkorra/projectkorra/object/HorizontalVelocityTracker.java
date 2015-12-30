@@ -1,13 +1,16 @@
 package com.projectkorra.projectkorra.object;
 
+import com.projectkorra.projectkorra.Element;
 import com.projectkorra.projectkorra.GeneralMethods;
 import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.SubElement;
 import com.projectkorra.projectkorra.earthbending.EarthMethods;
 import com.projectkorra.projectkorra.event.HorizontalVelocityChangeEvent;
 import com.projectkorra.projectkorra.waterbending.WaterMethods;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -19,8 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Carbogen on 2/2/2015.
  */
 public class HorizontalVelocityTracker {
+	
 	public static ConcurrentHashMap<Entity, HorizontalVelocityTracker> instances = new ConcurrentHashMap<Entity, HorizontalVelocityTracker>();
-
+	public boolean hasBeenDamaged = false;
 	private long delay;
 	private long fireTime;
 	private Entity entity;
@@ -29,8 +33,16 @@ public class HorizontalVelocityTracker {
 	private Vector thisVelocity;
 	private Location launchLocation;
 	private Location impactLocation;
+	private String abil;
+	private Element e;
+	private SubElement sub;
+	
+	public static String[] abils = {"AirBlast", "AirBurst", "AirSuction", "Bloodbending"};
 
-	public HorizontalVelocityTracker(Entity e, Player instigator, long delay) {
+	public HorizontalVelocityTracker(Entity e, Player instigator, long delay, String ability, Element element, SubElement se) {
+		if (!ProjectKorra.plugin.getConfig().getBoolean("Properties.HorizontalCollisionPhysics.Enabled"))
+			return;
+
 		remove(e);
 		entity = e;
 		this.instigator = instigator;
@@ -40,13 +52,22 @@ public class HorizontalVelocityTracker {
 		launchLocation = e.getLocation().clone();
 		impactLocation = launchLocation.clone();
 		this.delay = delay;
+		abil = ability;
+		this.e = element;
+		sub = se;
 		update();
 		instances.put(entity, this);
 	}
 
 	public void update() {
-		if (System.currentTimeMillis() < fireTime + delay)
+		if (System.currentTimeMillis() < fireTime + delay) {
 			return;
+		}
+		
+		if (entity.isOnGround()) {
+			remove();
+			return;
+		}
 
 		lastVelocity = thisVelocity.clone();
 		thisVelocity = entity.getVelocity().clone();
@@ -55,26 +76,24 @@ public class HorizontalVelocityTracker {
 
 		List<Block> blocks = GeneralMethods.getBlocksAroundPoint(entity.getLocation(), 1.5);
 
-		if (entity.isOnGround()) {
-			remove();
-			return;
-		}
-
 		for (Block b : blocks) {
 			if (WaterMethods.isWater(b)) {
 				remove();
 				return;
 			}
 		}
-
+		
 		if (thisVelocity.length() < lastVelocity.length()) {
 			if ((diff.getX() > 1 || diff.getX() < -1) || (diff.getZ() > 1 || diff.getZ() < -1)) {
 				impactLocation = entity.getLocation();
 				for (Block b : blocks) {
-					if (!EarthMethods.isTransparentToEarthbending(instigator, b)) {
-						ProjectKorra.plugin.getServer().getPluginManager().callEvent(new HorizontalVelocityChangeEvent(entity, instigator, lastVelocity, thisVelocity, diff, launchLocation, impactLocation));
-						remove();
-						return;
+					if (GeneralMethods.isSolid(b) && (entity.getLocation().getBlock().getRelative(BlockFace.EAST, 1).equals(b) || entity.getLocation().getBlock().getRelative(BlockFace.NORTH, 1).equals(b) || entity.getLocation().getBlock().getRelative(BlockFace.WEST, 1).equals(b) || entity.getLocation().getBlock().getRelative(BlockFace.SOUTH, 1).equals(b))) {
+						if (!EarthMethods.isTransparentToEarthbending(instigator, b)) {
+							hasBeenDamaged = true;
+							ProjectKorra.plugin.getServer().getPluginManager().callEvent(new HorizontalVelocityChangeEvent(entity, instigator, lastVelocity, thisVelocity, diff, launchLocation, impactLocation, abil, e, sub));
+							remove();
+							return;
+						}
 					}
 				}
 			}
@@ -83,7 +102,11 @@ public class HorizontalVelocityTracker {
 
 	public static void updateAll() {
 		for (Entity e : instances.keySet())
-			instances.get(e).update();
+			if (e != null) {
+				instances.get(e).update();
+			} else {
+				instances.remove(e);
+			}
 	}
 
 	public void remove() {
@@ -93,5 +116,12 @@ public class HorizontalVelocityTracker {
 	public static void remove(Entity e) {
 		if (instances.containsKey(e))
 			instances.remove(e);
+	}
+	
+	public static boolean hasBeenDamagedByHorizontalVelocity(Entity e) {
+		if (instances.containsKey(e)) {
+			return instances.get(e).hasBeenDamaged;
+		}
+		return false;
 	}
 }

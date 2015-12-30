@@ -1,31 +1,40 @@
 package com.projectkorra.projectkorra.airbending;
 
-import com.projectkorra.projectkorra.ability.StockAbility;
-import com.projectkorra.projectkorra.ability.api.CoreAbility;
-import com.projectkorra.projectkorra.util.Flight;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.ConcurrentHashMap;
+import com.projectkorra.projectkorra.BendingPlayer;
+import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.configuration.ConfigLoadable;
+import com.projectkorra.projectkorra.util.Flight;
 
-public class FlightAbility extends CoreAbility {
-
+public class FlightAbility implements ConfigLoadable {
+	
+	public static ConcurrentHashMap<Player, FlightAbility> instances = new ConcurrentHashMap<>();
+	
 	private static ConcurrentHashMap<String, Integer> hits = new ConcurrentHashMap<String, Integer>();
 	private static ConcurrentHashMap<String, Boolean> hovering = new ConcurrentHashMap<String, Boolean>();
 	private Player player;
 	private Flight flight;
+	
+	private static long cooldown = ProjectKorra.plugin.getConfig().getLong("Abilities.Air.Flight.Cooldown");
 
 	public FlightAbility(Player player) {
+		this.player = player;
+		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
+		if (bPlayer.isOnCooldown("Flight"))
+			return;
 		if (!AirMethods.canFly(player, true, false))
 			return;
 		if (flight == null)
 			flight = new Flight(player);
 		player.setAllowFlight(true);
 		player.setVelocity(player.getEyeLocation().getDirection().normalize());
-		this.player = player;
-		//instances.put(player.getUniqueId(), this);
-		putInstance(player, this);
+		bPlayer.addCooldown("Flight", cooldown);
+		instances.put(player, this);
 	}
 
 	public static void addHit(Player player) {
@@ -42,7 +51,7 @@ public class FlightAbility extends CoreAbility {
 	}
 
 	public static boolean contains(Player player) {
-		return containsPlayer(player, FlightAbility.class);
+		return instances.containsKey(player);
 	}
 
 	public static boolean isHovering(Player player) {
@@ -51,11 +60,13 @@ public class FlightAbility extends CoreAbility {
 
 	public static void remove(Player player) {
 		if (contains(player))
-			getAbilityFromPlayer(player, FlightAbility.class).remove();
+			instances.get(player).remove();
 	}
 
 	public static void removeAll() {
-		CoreAbility.removeAll(StockAbility.Flight);
+		for (FlightAbility ability : instances.values()) {
+			ability.remove();
+		}
 		hits.clear();
 		hovering.clear();
 	}
@@ -75,12 +86,6 @@ public class FlightAbility extends CoreAbility {
 		}
 	}
 
-	@Override
-	public StockAbility getStockAbility() {
-		return StockAbility.Flight;
-	}
-
-	@Override
 	public boolean progress() {
 		if (!AirMethods.canFly(player, false, isHovering(player))) {
 			remove(player);
@@ -100,15 +105,19 @@ public class FlightAbility extends CoreAbility {
 		return true;
 	}
 
+	public static void progressAll() {
+		for (FlightAbility ability : instances.values()) {
+			ability.progress();
+		}
+	}
+
 	@Override
 	public void reloadVariables() {
 	}
 
-	@Override
 	public void remove() {
 		String name = player.getName();
-		//instances.remove(uuid);
-		super.remove();
+		instances.remove(player);
 		hits.remove(name);
 		hovering.remove(name);
 		if (flight != null)

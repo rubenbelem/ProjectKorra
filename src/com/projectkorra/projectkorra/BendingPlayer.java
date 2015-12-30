@@ -30,6 +30,7 @@ public class BendingPlayer {
 	private ArrayList<Element> elements;
 	private HashMap<Integer, String> abilities;
 	private ConcurrentHashMap<String, Long> cooldowns;
+	private ConcurrentHashMap<Element, Boolean> toggledElements;
 	private boolean permaRemoved;
 	private boolean toggled = true;
 	private long slowTime = 0;
@@ -52,7 +53,13 @@ public class BendingPlayer {
 		this.setAbilities(abilities);
 		this.permaRemoved = permaRemoved;
 		cooldowns = new ConcurrentHashMap<String, Long>();
-
+		toggledElements = new ConcurrentHashMap<Element, Boolean>();
+		toggledElements.put(Element.Air, true);
+		toggledElements.put(Element.Earth, true);
+		toggledElements.put(Element.Fire, true);
+		toggledElements.put(Element.Water, true);
+		toggledElements.put(Element.Chi, true);
+		
 		players.put(uuid, this);
 		PKListener.login(this);
 	}
@@ -74,7 +81,7 @@ public class BendingPlayer {
 	 * @param cooldown The cooldown time
 	 */
 	public void addCooldown(String ability, long cooldown) {
-		PlayerCooldownChangeEvent event = new PlayerCooldownChangeEvent(Bukkit.getPlayer(uuid), ability, Result.ADDED);
+		PlayerCooldownChangeEvent event = new PlayerCooldownChangeEvent(Bukkit.getPlayer(uuid), ability, cooldown, Result.ADDED);
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		if (!event.isCancelled()) {
 			this.cooldowns.put(ability, cooldown + System.currentTimeMillis());
@@ -194,6 +201,12 @@ public class BendingPlayer {
 	public boolean isChiBlocked() {
 		return this.chiBlocked;
 	}
+	
+	public boolean isElementToggled(Element e) {
+		if(e != null)
+			return this.toggledElements.get(e);
+		return true;
+	}
 
 	/**
 	 * Checks to see if a specific ability is on cooldown.
@@ -238,7 +251,7 @@ public class BendingPlayer {
 	 * @param ability The ability's cooldown to remove
 	 */
 	public void removeCooldown(String ability) {
-		PlayerCooldownChangeEvent event = new PlayerCooldownChangeEvent(Bukkit.getPlayer(uuid), ability, Result.REMOVED);
+		PlayerCooldownChangeEvent event = new PlayerCooldownChangeEvent(Bukkit.getPlayer(uuid), ability, 0, Result.REMOVED);
 		Bukkit.getServer().getPluginManager().callEvent(event);
 		if (!event.isCancelled()) {
 			this.cooldowns.remove(ability);
@@ -292,6 +305,10 @@ public class BendingPlayer {
 	 */
 	public void toggleBending() {
 		toggled = !toggled;
+	}
+	
+	public void toggleElement(Element e) {
+		toggledElements.put(e, !toggledElements.get(e));
 	}
 
 	/**

@@ -32,7 +32,7 @@ public class EarthSmash {
 	public static boolean ALLOW_GRAB = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.EarthSmash.AllowGrab");
 	public static boolean ALLOW_SHOOTING = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.EarthSmash.AllowShooting");
 	public static boolean ALLOW_FLIGHT = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.EarthSmash.AllowFlight");
-	public static double GRAB_RANGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.EarthSmash.GrabRange");
+	public static int GRAB_RANGE = ProjectKorra.plugin.getConfig().getInt("Properties.Earth.SelectRange");
 	public static double TRAVEL_RANGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.EarthSmash.ShotRange");
 	public static double SHOOTING_DAMAGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.EarthSmash.Damage");
 
@@ -60,7 +60,8 @@ public class EarthSmash {
 	private int animCounter, progressCounter;
 	private long time, delay, cooldown, flightRemove, flightStart;
 	private double grabbedRange;
-	private double grabRange, chargeTime, damage, knockback, knockup, flySpeed, shootRange;
+	private double chargeTime, damage, knockback, knockup, flySpeed, shootRange;
+	private int grabRange;
 	private ArrayList<Entity> affectedEntities = new ArrayList<Entity>();
 	private ArrayList<BlockRepresenter> currentBlocks = new ArrayList<BlockRepresenter>();
 	private ArrayList<TempBlock> affectedBlocks = new ArrayList<TempBlock>();
@@ -167,7 +168,7 @@ public class EarthSmash {
 		if (state == State.START && progressCounter > 1) {
 			if (!player.isSneaking()) {
 				if (System.currentTimeMillis() - time > chargeTime) {
-					origin = EarthMethods.getEarthSourceBlock(player, grabRange);
+					origin = EarthMethods.getEarthSourceBlock(player, grabRange, true, EarthMethods.canSandbend(player), false);
 					if (origin == null) {
 						remove();
 						return;
@@ -301,7 +302,7 @@ public class EarthSmash {
 								remove();
 								return;
 							}
-							if (isEarthbendableMaterial(block.getType()))
+							if (EarthMethods.isEarthbendable(player, block))
 								totalBendableBlocks++;
 						}
 				if (totalBendableBlocks < REQUIRED_BENDABLE_BLOCKS) {
@@ -331,13 +332,13 @@ public class EarthSmash {
 					for (int z = -1; z <= 1; z++) {
 						if ((Math.abs(x) + Math.abs(z)) % 2 == 1) {
 							Block block = loc.clone().add(x, -2, z).getBlock();
-							if (isEarthbendableMaterial(block.getType()))
+							if (EarthMethods.isEarthbendable(player, block))
 								EarthMethods.addTempAirBlock(block);
 						}
 
 						//Remove the first level of dirt
 						Block block = loc.clone().add(x, -1, z).getBlock();
-						if (isEarthbendableMaterial(block.getType()))
+						if (EarthMethods.isEarthbendable(player, block))
 							EarthMethods.addTempAirBlock(block);
 
 					}
@@ -466,7 +467,7 @@ public class EarthSmash {
 	public Material selectMaterialForRepresenter(Material mat) {
 		Material tempMat = selectMaterial(mat);
 		Random rand = new Random();
-		if (!isEarthbendableMaterial(tempMat)) {
+		if (!EarthMethods.isEarthbendable(tempMat) || !EarthMethods.isMetalbendable(player, tempMat)) {
 			if (currentBlocks.size() < 1)
 				return Material.DIRT;
 			else
@@ -483,8 +484,7 @@ public class EarthSmash {
 		 */
 		if (!ALLOW_GRAB)
 			return null;
-		@SuppressWarnings("deprecation")
-		List<Block> blocks = player.getLineOfSight(EarthMethods.getTransparentEarthbending(), (int) Math.round(grabRange));
+		List<Block> blocks = GeneralMethods.getBlocksAroundPoint(GeneralMethods.getTargetedLocation(player, grabRange, GeneralMethods.nonOpaque), 1);
 		for (EarthSmash smash : instances) {
 			if (reqState == null || smash.state == reqState)
 				for (Block block : blocks)
@@ -549,14 +549,6 @@ public class EarthSmash {
 			}
 		}
 		return null;
-	}
-
-	public static boolean isEarthbendableMaterial(Material mat) {
-		for (String s : ProjectKorra.plugin.getConfig().getStringList("Properties.Earth.EarthbendableBlocks")) {
-			if (mat == Material.getMaterial(s))
-				return true;
-		}
-		return false;
 	}
 
 	public static void progressAll() {
@@ -681,11 +673,11 @@ public class EarthSmash {
 			bplayer.addCooldown("EarthSmash", cooldown);
 	}
 
-	public double getGrabRange() {
+	public int getGrabRange() {
 		return grabRange;
 	}
 
-	public void setGrabRange(double grabRange) {
+	public void setGrabRange(int grabRange) {
 		this.grabRange = grabRange;
 	}
 

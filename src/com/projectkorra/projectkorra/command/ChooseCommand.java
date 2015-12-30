@@ -21,7 +21,7 @@ import java.util.List;
 public class ChooseCommand extends PKCommand {
 
 	public ChooseCommand() {
-		super("choose", "/bending choose [Element] <player>", "This command will allow the user to choose a player either for himself or <Player> if specified. This command can only be used once per player unless they have permission to rechoose their element.", new String[] { "choose", "ch" });
+		super("choose", "/bending choose <Element> [Player]", "This command will allow the user to choose a player either for himself or <Player> if specified. This command can only be used once per player unless they have permission to rechoose their element.", new String[] { "choose", "ch" });
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class ChooseCommand extends PKCommand {
 	private void add(CommandSender sender, Player target, String element) {
 		element = getElement(element);
 		Element e = Element.getType(element);
-		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(target);
+		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(target.getName());
 		bPlayer.setElement(e);
 		ChatColor color = GeneralMethods.getElementColor(e);
 		if (element.charAt(0) == 'w' || element.charAt(0) == 'f') {

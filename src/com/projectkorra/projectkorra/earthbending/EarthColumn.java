@@ -8,6 +8,7 @@ import com.projectkorra.projectkorra.util.BlockSource;
 import com.projectkorra.projectkorra.util.ClickType;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -17,13 +18,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EarthColumn {
 
 	public static ConcurrentHashMap<Integer, EarthColumn> instances = new ConcurrentHashMap<Integer, EarthColumn>();
-	private static ConcurrentHashMap<Block, Block> alreadydoneblocks = new ConcurrentHashMap<Block, Block>();
-	private static ConcurrentHashMap<Block, Integer> baseblocks = new ConcurrentHashMap<Block, Integer>();
 
 	public static final int standardheight = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.RaiseEarth.Column.Height");
 	private static int ID = Integer.MIN_VALUE;
-
-	private static double range = 20;
+	private static boolean dynamic = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.RaiseEarth.DynamicSourcing.Enabled");
+	private static int selectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.RaiseEarth.SelectRange");
+	
+	private static long cooldown = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.RaiseEarth.Cooldown");
 	private static double speed = 8;
 	private static final Vector direction = new Vector(0, 1, 0);
 	private static long interval = (long) (1000. / speed);
@@ -48,7 +49,7 @@ public class EarthColumn {
 			if (AvatarState.isAvatarState(player)) {
 				height = (int) (2. / 5. * (double) AvatarState.getValue(height));
 			}
-			block = BlockSource.getEarthSourceBlock(player, range, ClickType.LEFT_CLICK);
+			block = BlockSource.getEarthSourceBlock(player, selectRange, selectRange, ClickType.LEFT_CLICK, false, dynamic, true, EarthMethods.canSandbend(player), EarthMethods.canMetalbend(player));
 			if (block == null)
 				return;
 			origin = block.getLocation();
@@ -67,7 +68,7 @@ public class EarthColumn {
 			if (canInstantiate()) {
 				id = ID;
 				instances.put(id, this);
-				bPlayer.addCooldown("RaiseEarth", GeneralMethods.getGlobalCooldown());
+				bPlayer.addCooldown("RaiseEarth", cooldown);
 				if (ID >= Integer.MAX_VALUE) {
 					ID = Integer.MIN_VALUE;
 				}
@@ -158,7 +159,7 @@ public class EarthColumn {
 
 	private boolean canInstantiate() {
 		for (Block block : affectedblocks.keySet()) {
-			if (blockInAllAffectedBlocks(block) || alreadydoneblocks.containsKey(block)) {
+			if (blockInAllAffectedBlocks(block) || block.getType()==Material.AIR) {
 				return false;
 			}
 		}
@@ -176,10 +177,6 @@ public class EarthColumn {
 			time = System.currentTimeMillis();
 			if (!moveEarth()) {
 				instances.remove(id);
-				for (Block block : affectedblocks.keySet()) {
-					alreadydoneblocks.put(block, block);
-				}
-				baseblocks.put(location.clone().add(direction.clone().multiply(-1 * (distance - 1))).getBlock(), (distance - 1));
 
 				return false;
 			}
@@ -200,32 +197,10 @@ public class EarthColumn {
 		return true;
 	}
 
-	public static boolean blockIsBase(Block block) {
-		if (baseblocks.containsKey(block)) {
-			return true;
-		}
-		return false;
-	}
-
-	public static void removeBlockBase(Block block) {
-		if (baseblocks.containsKey(block)) {
-			baseblocks.remove(block);
-		}
-
-	}
-
 	public static void removeAll() {
 		for (int id : instances.keySet()) {
 			instances.remove(id);
 		}
-	}
-
-	public static void resetBlock(Block block) {
-
-		if (alreadydoneblocks.containsKey(block)) {
-			alreadydoneblocks.remove(block);
-		}
-
 	}
 
 	public static String getDescription() {

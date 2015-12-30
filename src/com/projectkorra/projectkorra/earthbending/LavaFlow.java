@@ -40,7 +40,7 @@ public class LavaFlow {
 	public static final long CLICK_LAND_CLEANUP_DELAY = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.LavaFlow.ClickLandCleanupDelay");
 	public static final long SHIFT_REMOVE_DELAY = ProjectKorra.plugin.getConfig().getLong("Abilities.Earth.LavaFlow.ShiftCleanupDelay");
 
-	public static final double CLICK_RANGE = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ClickRange");
+	public static final int CLICK_RANGE = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.LavaFlow.ClickRange");
 	public static final double CLICK_LAVA_RADIUS = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ClickRadius");
 	public static final double CLICK_LAND_RADIUS = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ClickRadius");
 	public static final double SHIFT_PLATFORM_RADIUS = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ShiftPlatformRadius");
@@ -49,7 +49,9 @@ public class LavaFlow {
 	public static final double LAVA_CREATE_SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ClickLavaCreateSpeed");
 	public static final double LAND_CREATE_SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ClickLandCreateSpeed");
 	public static final double SHIFT_FLOW_SPEED = ProjectKorra.plugin.getConfig().getDouble("Abilities.Earth.LavaFlow.ShiftFlowSpeed");
-
+	
+	private static boolean dynamic = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.LavaFlow.DynamicSourcing.Enabled");
+	
 	public static final int UPWARD_FLOW = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.LavaFlow.UpwardFlow");
 	public static final int DOWNWARD_FLOW = ProjectKorra.plugin.getConfig().getInt("Abilities.Earth.LavaFlow.DownwardFlow");
 	public static final boolean ALLOW_NATURAL_FLOW = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Earth.LavaFlow.AllowNaturalFlow");
@@ -68,7 +70,7 @@ public class LavaFlow {
 	private double shiftPlatformRadius, shiftMaxRadius;
 	private double shiftFlowSpeed, shiftRemoveSpeed, shiftRemoveDelay;
 	private double particleDensity;
-	private double clickRange, clickLavaRadius, clickLandRadius;
+	private double clickLavaRadius, clickLandRadius;
 	private long clickLavaDelay, clickLandDelay, clickLavaCooldown, clickLandCooldown,
 			shiftCooldown;
 	private long clickLavaCleanupDelay, clickLandCleanupDelay;
@@ -76,6 +78,7 @@ public class LavaFlow {
 	private int upwardFlow, downwardFlow;
 	private boolean shiftIsFinished;
 	private boolean allowNaturalFlow;
+	private int clickRange;
 	private AbilityType type;
 	private Location origin;
 
@@ -165,7 +168,7 @@ public class LavaFlow {
 			}
 			instances.add(this);
 		} else if (type == AbilityType.CLICK) {
-			Block sourceBlock = BlockSource.getEarthOrLavaSourceBlock(player, clickRange, ClickType.LEFT_CLICK);
+			Block sourceBlock = BlockSource.getEarthOrLavaSourceBlock(player, clickRange, clickRange, ClickType.CLICK, false, dynamic, true, EarthMethods.canSandbend(player), EarthMethods.canMetalbend(player));
 			if (sourceBlock == null) {
 				remove();
 				return;
@@ -369,7 +372,6 @@ public class LavaFlow {
 	 * 
 	 * @param testBlock the block to attempt to remove
 	 */
-	@SuppressWarnings("deprecation")
 	public void removeLava(Block testBlock) {
 		for (int i = 0; i < TEMP_LAVA_BLOCKS.size(); i++) {
 			TempBlock tblock = TEMP_LAVA_BLOCKS.get(i);
@@ -381,8 +383,8 @@ public class LavaFlow {
 				return;
 			}
 		}
-
-		TempBlock tblock = new TempBlock(testBlock, REVERT_MATERIAL, testBlock.getData());
+		
+		TempBlock tblock = new TempBlock(testBlock, REVERT_MATERIAL, (byte) 0);
 		affectedBlocks.add(tblock);
 		TEMP_LAND_BLOCKS.add(tblock);
 	}
@@ -523,7 +525,10 @@ public class LavaFlow {
 	public static boolean isEarthbendableMaterial(Material mat, Player player) {
 		for (String s : ProjectKorra.plugin.getConfig().getStringList("Properties.Earth.EarthbendableBlocks"))
 			if (mat == Material.getMaterial(s))
-				return true;
+				return true;	
+		if (ProjectKorra.plugin.getConfig().getStringList("Properties.Earth.SandBlocks").contains(mat.toString()) && EarthMethods.canSandbend(player)) {
+			return true;
+		}
 		if (ProjectKorra.plugin.getConfig().getStringList("Properties.Earth.MetalBlocks").contains(mat.toString()) && EarthMethods.canMetalbend(player)) {
 			return true;
 		}
@@ -678,11 +683,11 @@ public class LavaFlow {
 		this.particleDensity = particleDensity;
 	}
 
-	public double getClickRange() {
+	public int getClickRange() {
 		return clickRange;
 	}
 
-	public void setClickRange(double clickRange) {
+	public void setClickRange(int clickRange) {
 		this.clickRange = clickRange;
 	}
 

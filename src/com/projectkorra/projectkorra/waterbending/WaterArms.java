@@ -147,12 +147,12 @@ public class WaterArms {
 	}
 
 	private boolean prepare() {
-		Block sourceblock = WaterMethods.getWaterSourceBlock(player, sourceGrabRange, canUsePlantSource);
-		if (sourceblock != null) {
-			if (WaterMethods.isPlant(sourceblock)) {
+		Block sourceBlock = WaterMethods.getWaterSourceBlock(player, sourceGrabRange, true, WaterMethods.canPlantbend(player), canUsePlantSource && WaterMethods.canPlantbend(player));
+		if (sourceBlock != null) {
+			if (WaterMethods.isPlant(sourceBlock)) {
 				fullSource = false;
 			}
-			ParticleEffect.LARGE_SMOKE.display(WaterMethods.getWaterSourceBlock(player, sourceGrabRange, canUsePlantSource).getLocation().clone().add(0.5, 0.5, 0.5), 0, 0, 0, 0F, 4);
+			ParticleEffect.LARGE_SMOKE.display(WaterMethods.getWaterSourceBlock(player, sourceGrabRange, true, WaterMethods.canPlantbend(player), canUsePlantSource && WaterMethods.canPlantbend(player)).getLocation().clone().add(0.5, 0.5, 0.5), 0, 0, 0, 0F, 4);
 			return true;
 		} else if (WaterReturn.hasWaterBottle(player)) {
 			WaterReturn.emptyWaterBottle(player);
@@ -341,8 +341,7 @@ public class WaterArms {
 	}
 
 	private void checkIfZapped() {
-		for (Integer id : Lightning.getInstances(Lightning.class).keySet()) {
-			Lightning l = (Lightning) Lightning.getInstances(Lightning.class).get(id);
+		for (Lightning l : Lightning.instances.values()) {
 			for (Lightning.Arc arc : l.getArcs()) {
 				for (Block arm : revert.keySet()) {
 					for (Location loc : arc.getPoints()) {

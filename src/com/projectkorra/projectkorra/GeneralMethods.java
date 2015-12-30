@@ -1,61 +1,13 @@
 package com.projectkorra.projectkorra;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import fr.neatmonster.nocheatplus.checks.CheckType;
+import fr.neatmonster.nocheatplus.hooks.NCPExemptionManager;
+import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import net.sacredlabyrinth.Phaed.PreciousStones.FieldFlag;
+import net.sacredlabyrinth.Phaed.PreciousStones.PreciousStones;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Sound;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.FallingSand;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
-
+import com.google.common.reflect.ClassPath;
 import com.griefcraft.lwc.LWC;
 import com.griefcraft.lwc.LWCPlugin;
 import com.griefcraft.model.Protection;
@@ -120,15 +72,67 @@ import com.projectkorra.projectkorra.waterbending.WaterSpout;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.DefaultFlag;
 
-import fr.neatmonster.nocheatplus.checks.CheckType;
-import fr.neatmonster.nocheatplus.hooks.NCPExemptionManager;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import net.sacredlabyrinth.Phaed.PreciousStones.FieldFlag;
-import net.sacredlabyrinth.Phaed.PreciousStones.PreciousStones;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.FallingSand;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("deprecation")
 public class GeneralMethods {
+	
 	public static List<Ability> invincible = new ArrayList<>();
 
 	static ProjectKorra plugin;
@@ -143,9 +147,10 @@ public class GeneralMethods {
 	public static ConcurrentHashMap<String, ConcurrentHashMap<Block, BlockCacheElement>> blockProtectionCache = new ConcurrentHashMap<String, ConcurrentHashMap<Block, BlockCacheElement>>();
 
 	public static Integer[] nonOpaque = { 0, 6, 8, 9, 10, 11, 27, 28, 30, 31, 32, 37, 38, 39, 40, 50, 51, 55, 59, 66, 68, 69, 70, 72, 75, 76, 77, 78, 83, 90, 93, 94, 104, 105, 106, 111, 115, 119, 127, 131, 132, 175 };
+	public static Material[] interactable = { Material.ACACIA_DOOR, Material.ACACIA_FENCE_GATE, Material.ANVIL, Material.ARMOR_STAND, Material.BEACON, Material.BED, Material.BED_BLOCK, Material.BIRCH_DOOR, Material.BIRCH_FENCE_GATE, Material.BOAT, Material.BREWING_STAND, Material.BURNING_FURNACE, Material.CAKE_BLOCK, Material.CHEST, Material.COMMAND, Material.DARK_OAK_DOOR, Material.DARK_OAK_FENCE_GATE, Material.DISPENSER, Material.DRAGON_EGG, Material.DROPPER, Material.ENCHANTMENT_TABLE, Material.ENDER_CHEST, Material.ENDER_PORTAL_FRAME, Material.FENCE_GATE, Material.FURNACE, Material.HOPPER, Material.HOPPER_MINECART, Material.COMMAND_MINECART, Material.ITEM_FRAME, Material.JUKEBOX, Material.JUNGLE_DOOR, Material.JUNGLE_FENCE_GATE, Material.LEVER, Material.MINECART, Material.NOTE_BLOCK, Material.PAINTING, Material.SPRUCE_DOOR, Material.SPRUCE_FENCE_GATE, Material.STONE_BUTTON, Material.TRAPPED_CHEST, Material.TRAP_DOOR, Material.WOOD_BUTTON, Material.WOOD_DOOR, Material.WORKBENCH };
 
 	// Stands for toggled = false while logging out
-	public static List<UUID> toggedOut = new ArrayList<UUID>();
+	public static List<UUID> toggledOut = new ArrayList<UUID>();
 
 	public GeneralMethods(ProjectKorra plugin) {
 		GeneralMethods.plugin = plugin;
@@ -307,7 +312,8 @@ public class GeneralMethods {
 			return false;
 		if (!canBind(player, ability))
 			return false;
-
+		if (bPlayer.isElementToggled(GeneralMethods.getAbilityElement(ability)) == false)
+			return false;
 		if (isRegionProtectedFromBuild(p, ability, p.getLocation()))
 			return false;
 		if (Paralyze.isParalyzed(p) || Bloodbending.isBloodbended(p))
@@ -333,6 +339,8 @@ public class GeneralMethods {
 		if (!bPlayer.isToggled())
 			return false;
 		if (!bPlayer.hasElement(element))
+			return false;
+		if (bPlayer.isElementToggled(element) == false)
 			return false;
 		if (isRegionProtectedFromBuild(p, null, p.getLocation()))
 			return false;
@@ -821,20 +829,12 @@ public class GeneralMethods {
 	 * 
 	 * @see #getBendingPlayer(UUID)
 	 */
-	public static BendingPlayer getBendingPlayer(String playerName) {
-		OfflinePlayer player = Bukkit.getPlayer(playerName);
+	public static BendingPlayer getBendingPlayer(String player) {
+		OfflinePlayer oPlayer = Bukkit.getOfflinePlayer(player);
 		if (player == null) {
-			player = Bukkit.getOfflinePlayer(playerName);
+			oPlayer = Bukkit.getOfflinePlayer(oPlayer.getUniqueId());
 		}
-		return getBendingPlayer(player.getUniqueId());
-	}
-
-	public static BendingPlayer getBendingPlayer(UUID uuid) {
-		return BendingPlayer.getPlayers().get(uuid);
-	}
-
-	public static BendingPlayer getBendingPlayer(OfflinePlayer player) {
-		return getBendingPlayer(player.getUniqueId());
+		return BendingPlayer.getPlayers().get(oPlayer.getUniqueId());
 	}
 
 	public static List<Block> getBlocksAlongLine(Location ploc, Location tloc, World w) {
@@ -1147,6 +1147,8 @@ public class GeneralMethods {
 		for (Entity entity : entities) {
 			if (entity.getWorld() != location.getWorld()) {
 				list.remove(entity);
+			} else if (entity instanceof Player && ((Player) entity).getGameMode().equals(GameMode.SPECTATOR)) {
+				list.remove(entity);
 			} else if (entity.getLocation().distance(location) > radius) {
 				list.remove(entity);
 			}
@@ -1277,7 +1279,6 @@ public class GeneralMethods {
 		return null;
 	}
 
-	@SuppressWarnings("incomplete-switch")
 	public static ChatColor getSubBendingColor(Element element) {
 		switch (element) {
 			case Fire:
@@ -1288,8 +1289,13 @@ public class GeneralMethods {
 				return ChatColor.valueOf(plugin.getConfig().getString("Properties.Chat.Colors.WaterSub"));
 			case Earth:
 				return ChatColor.valueOf(plugin.getConfig().getString("Properties.Chat.Colors.EarthSub"));
+			default:
+				return getAvatarColor();
 		}
-		return getAvatarColor();
+	}
+	
+	public static SubElement getSubElementByString(String sub) {
+		return SubElement.getType(sub);
 	}
 
 	@SuppressWarnings("unused")
@@ -1432,6 +1438,10 @@ public class GeneralMethods {
 
 	public static boolean isImportEnabled() {
 		return plugin.getConfig().getBoolean("Properties.ImportEnabled");
+	}
+	
+	public static boolean isInteractable(Block block) {
+		return Arrays.asList(interactable).contains(block.getType());
 	}
 
 	public static boolean isObstructed(Location location1, Location location2) {
@@ -1837,6 +1847,34 @@ public class GeneralMethods {
 				writeToDebug(plugin.getDescription().getName() + " v" + plugin.getDescription().getVersion());
 			}
 		}
+		
+		writeToDebug("");
+		writeToDebug("Collection Sizes");
+		writeToDebug("====================");
+		ClassLoader loader = ProjectKorra.class.getClassLoader();
+		try {
+			for (final ClassPath.ClassInfo info : ClassPath.from(loader).getTopLevelClasses()) {
+				if (info.getName().startsWith("com.projectkorra.")) {
+					final Class<?> clazz = info.load();				    
+				    for (Field field : clazz.getDeclaredFields()) {
+				    	String simpleName = clazz.getSimpleName();
+				    	field.setAccessible(true);
+				    	try {
+				    		Object obj = field.get(null);
+				    		if (obj instanceof Collection) {
+				    			writeToDebug(simpleName + ": " + field.getName() + " size=" + ((Collection<?>) obj).size());
+				    		} else if (obj instanceof Map) {
+				    			writeToDebug(simpleName + ": " + field.getName() + " size=" + ((Map<?,?>) obj).size());
+				    		}
+				    	} catch (Exception e) {
+				    		
+				    	}
+				    }
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void saveAbility(BendingPlayer bPlayer, int slot, String ability) {
@@ -1948,6 +1986,8 @@ public class GeneralMethods {
 		Flight.removeAll();
 		TempBlock.removeAll();
 		MultiAbilityManager.removeAll();
+		if (!invincible.isEmpty())
+			invincible.clear();
 	}
 
 	public static void stopPlugin() {

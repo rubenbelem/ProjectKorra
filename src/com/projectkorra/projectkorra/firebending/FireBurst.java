@@ -1,12 +1,8 @@
 package com.projectkorra.projectkorra.firebending;
 
-import com.projectkorra.projectkorra.BendingManager;
-import com.projectkorra.projectkorra.BendingPlayer;
-import com.projectkorra.projectkorra.GeneralMethods;
-import com.projectkorra.projectkorra.ProjectKorra;
-import com.projectkorra.projectkorra.ability.AvatarState;
-import com.projectkorra.projectkorra.ability.StockAbility;
-import com.projectkorra.projectkorra.ability.api.CoreAbility;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -15,10 +11,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.projectkorra.projectkorra.BendingManager;
+import com.projectkorra.projectkorra.BendingPlayer;
+import com.projectkorra.projectkorra.GeneralMethods;
+import com.projectkorra.projectkorra.ProjectKorra;
+import com.projectkorra.projectkorra.ability.AvatarState;
+import com.projectkorra.projectkorra.configuration.ConfigLoadable;
 
-public class FireBurst extends CoreAbility {
+public class FireBurst implements ConfigLoadable {
+
+	public static final ConcurrentHashMap<Player, FireBurst> instances = new ConcurrentHashMap<>();
+	
 	private static double PARTICLES_PERCENTAGE = 5;
 
 	private Player player;
@@ -26,6 +29,7 @@ public class FireBurst extends CoreAbility {
 	private int damage = config.get().getInt("Abilities.Fire.FireBurst.Damage");
 	private long chargetime = config.get().getLong("Abilities.Fire.FireBurst.ChargeTime");
 	private long range = config.get().getLong("Abilities.Fire.FireBurst.Range");
+	private static long cooldown = config.get().getLong("Abilities.Fire.FireBurst.Cooldown");
 	private double deltheta = 10;
 	private double delphi = 10;
 	private boolean charged = false;
@@ -36,10 +40,10 @@ public class FireBurst extends CoreAbility {
 		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
 		if (bPlayer.isOnCooldown("FireBurst"))
 			return;
-		if (containsPlayer(player, FireBurst.class))
+		if (instances.containsKey(player))
 			return;
 		/* End Initial Checks */
-		//reloadVariables();
+		// reloadVariables();
 
 		starttime = System.currentTimeMillis();
 		if (FireMethods.isDay(player.getWorld())) {
@@ -52,17 +56,19 @@ public class FireBurst extends CoreAbility {
 				chargetime = 0;
 		}
 		this.player = player;
-		//instances.put(player, this);
-		putInstance(player, this);
+		instances.put(player, this);
 	}
 
 	public static void coneBurst(Player player) {
-		if (containsPlayer(player, FireBurst.class))
-			((FireBurst) getAbilityFromPlayer(player, FireBurst.class)).coneBurst();
+		if (instances.containsKey(player)) {
+			((FireBurst) instances.get(player)).coneBurst();
+		}
 	}
 
 	public static String getDescription() {
-		return "FireBurst is a very powerful firebending ability. " + "To use, press and hold sneak to charge your burst. " + "Once charged, you can either release sneak to launch a cone-shaped burst " + "of flames in front of you, or click to release the burst in a sphere around you. ";
+		return "FireBurst is a very powerful firebending ability. " + "To use, press and hold sneak to charge your burst. "
+				+ "Once charged, you can either release sneak to launch a cone-shaped burst "
+				+ "of flames in front of you, or click to release the burst in a sphere around you. ";
 	}
 
 	private void coneBurst() {
@@ -90,6 +96,7 @@ public class FireBurst extends CoreAbility {
 					}
 				}
 			}
+			GeneralMethods.getBendingPlayer(player.getName()).addCooldown("FireBurst", cooldown);
 		}
 		// Methods.verbose("--" + AirBlast.instances.size() + "--");
 		remove();
@@ -111,15 +118,20 @@ public class FireBurst extends CoreAbility {
 		return range;
 	}
 
-	@Override
-	public StockAbility getStockAbility() {
-		return StockAbility.FireBurst;
+	public void remove() {
+		instances.remove(player);
+	}
+
+	public static void removeAll() {
+		for (FireBurst ability : instances.values()) {
+			ability.remove();
+		}
 	}
 
 	/**
-	 * To combat the sphere FireBurst lag we are only going to show a certain
-	 * percentage of FireBurst particles at a time per tick. As the bursts
-	 * spread out then we can show more at a time.
+	 * To combat the sphere FireBurst lag we are only going to show a certain percentage of
+	 * FireBurst particles at a time per tick. As the bursts spread out then we can show more at a
+	 * time.
 	 */
 	public void handleSmoothParticles() {
 		for (int i = 0; i < blasts.size(); i++) {
@@ -133,8 +145,11 @@ public class FireBurst extends CoreAbility {
 		}
 	}
 
-	@Override
 	public boolean progress() {
+		if (player.isDead() || !player.isOnline()) {
+			remove();
+			return false;
+		}
 		if (!GeneralMethods.canBend(player.getName(), "FireBurst")) {
 			remove();
 			return false;
@@ -167,10 +182,16 @@ public class FireBurst extends CoreAbility {
 		return true;
 	}
 
+	public static void progressAll() {
+		for (FireBurst ability : instances.values()) {
+			ability.progress();
+		}
+	}
+
 	@Override
 	public void reloadVariables() {
-		//No need for this because there are no static variables.
-		//All instance variables are gotten newly from config
+		// No need for this because there are no static variables.
+		// All instance variables are gotten newly from config
 	}
 
 	public void setChargetime(long chargetime) {
@@ -206,6 +227,7 @@ public class FireBurst extends CoreAbility {
 					blasts.add(fblast);
 				}
 			}
+			GeneralMethods.getBendingPlayer(player.getName()).addCooldown("FireBurst", cooldown);
 		}
 		// Methods.verbose("--" + AirBlast.instances.size() + "--");
 		remove();

@@ -29,6 +29,11 @@ public class IceSpike2 {
 
 	private static double RANGE = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.IceSpike.Projectile.Range");
 	private static double DAMAGE = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.IceSpike.Projectile.Damage");
+	private static int selectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceSpike.Projectile.SelectRange");
+	private static int autoSelectRange = ProjectKorra.plugin.getConfig().getInt("Abilities.Water.IceSpike.Projectile.AutoSourcing.SelectRange");
+	private static boolean dynamic = ProjectKorra.plugin.getConfig().getBoolean("Abilities.Water.IceSpike.Projectile.DynamicSourcing.Enabled");
+	private static long cooldown = ProjectKorra.plugin.getConfig().getLong("Abilities.Water.IceSpike.Cooldown");
+
 	private static int defaultmod = 2;
 	private static int ID = Integer.MIN_VALUE;
 	static long slowCooldown = 5000;
@@ -40,7 +45,6 @@ public class IceSpike2 {
 
 	private int id;
 	private double range;
-	private boolean plantbending = false;
 	private boolean prepared = false;
 	private boolean settingup = false;
 	private boolean progressing = false;
@@ -59,11 +63,9 @@ public class IceSpike2 {
 			return;
 
 		block(player);
-		if (WaterMethods.canPlantbend(player))
-			plantbending = true;
 		range = WaterMethods.waterbendingNightAugment(defaultrange, player.getWorld());
 		this.player = player;
-		Block sourceblock = BlockSource.getWaterSourceBlock(player, range, ClickType.SHIFT_DOWN, true, true, plantbending);
+		Block sourceblock = BlockSource.getWaterSourceBlock(player, autoSelectRange, selectRange, ClickType.SHIFT_DOWN, false, dynamic, false, true, WaterMethods.canIcebend(player), WaterMethods.canPlantbend(player));
 
 		if (sourceblock == null) {
 			new SpikeField(player);
@@ -401,6 +403,8 @@ public class IceSpike2 {
 				source.revertBlock();
 			progressing = false;
 		}
+		BendingPlayer bPlayer = GeneralMethods.getBendingPlayer(player.getName());
+		bPlayer.addCooldown("IceSpike", cooldown);
 
 		instances.remove(id);
 	}

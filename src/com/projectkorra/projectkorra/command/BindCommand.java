@@ -49,7 +49,10 @@ public class BindCommand extends PKCommand {
 		if (!GeneralMethods.canBind(((Player) sender).getName(), ability)) {
 			sender.sendMessage(ChatColor.RED + "You don't have permission to bend this element.");
 			return;
+		} else if (!GeneralMethods.getBendingPlayer(sender.getName()).isElementToggled(GeneralMethods.getAbilityElement(ability))) {
+			sender.sendMessage(ChatColor.RED + "You have that ability's element toggled off currently.");
 		}
+		
 		GeneralMethods.bindAbility((Player) sender, GeneralMethods.getAbility(ability), slot);
 	}
 }
