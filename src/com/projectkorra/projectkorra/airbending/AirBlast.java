@@ -185,7 +185,7 @@ public class AirBlast implements ConfigLoadable {
 
 	private void advanceLocation() {
 		if (showParticles)
-			AirMethods.playAirbendingParticles(location, 6, 0.275F, 0.275F, 0.275F);
+			AirMethods.playAirbendingParticles(location, 20, 0.275F, 0.275F, 0.275F);
 		if (GeneralMethods.rand.nextInt(4) == 0) {
 			AirMethods.playAirbendingSound(location);
 		}

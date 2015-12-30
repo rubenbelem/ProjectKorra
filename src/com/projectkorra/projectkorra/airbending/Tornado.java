@@ -244,7 +244,7 @@ public class Tornado implements ConfigLoadable {
 
 				Location effect = new Location(origin.getWorld(), x, y, z);
 				if (!GeneralMethods.isRegionProtectedFromBuild(player, "AirBlast", effect)) {
-					AirMethods.playAirbendingParticles(effect, 4);
+					AirMethods.playAirbendingParticles(effect, 7);
 					if (GeneralMethods.rand.nextInt(20) == 0) {
 						AirMethods.playAirbendingSound(effect);
 					}
